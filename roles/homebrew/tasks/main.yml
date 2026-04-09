@@ -1,4 +1,10 @@
 ---
-- name: homebrew | placeholder
-  ansible.builtin.debug:
-    msg: "homebrew role not yet implemented"
+- name: homebrew | update Homebrew package index
+  community.general.homebrew:
+    update_homebrew: true
+
+- name: homebrew | install core CLI formulae
+  community.general.homebrew:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ homebrew_formulae }}"
