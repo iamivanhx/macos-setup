@@ -40,3 +40,7 @@ nerd_font_cask: font-hack-nerd-font
 
 # Xcode App Store ID (used by the mas CLI to install full Xcode).
 xcode_app_store_id: 497799835
+
+# pnpm standalone installer URL (used by the languages role to bootstrap pnpm
+# before Node is available). Update if the upstream install script URL changes.
+pnpm_install_url: https://get.pnpm.io/install.sh

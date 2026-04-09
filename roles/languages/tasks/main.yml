@@ -1,4 +1,33 @@
 ---
-- name: languages | placeholder
-  ansible.builtin.debug:
-    msg: "languages role not yet implemented"
+- name: languages | install uv via Homebrew
+  community.general.homebrew:
+    name: uv
+    state: present
+
+- name: languages | install pnpm via standalone installer
+  ansible.builtin.shell: >-
+    curl -fsSL {{ pnpm_install_url }} | sh -
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/share/pnpm/pnpm"
+  environment:
+    SHELL: /bin/zsh
+
+- name: languages | install Node LTS via pnpm
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/share/pnpm/pnpm env use --global lts"
+  register: pnpm_node_lts_result
+  changed_when: "'Installed' in pnpm_node_lts_result.stdout or 'Activated' in pnpm_node_lts_result.stdout"
+
+- name: languages | verify uv is installed and functional
+  ansible.builtin.command: uv --version
+  register: uv_version_result
+  changed_when: false
+
+- name: languages | verify pnpm is installed and functional
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/share/pnpm/pnpm --version"
+  register: pnpm_version_result
+  changed_when: false
+
+- name: languages | verify node is installed and functional
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/share/pnpm/node --version"
+  register: node_version_result
+  changed_when: false
