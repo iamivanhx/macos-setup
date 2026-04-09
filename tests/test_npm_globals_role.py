@@ -27,10 +27,7 @@ class TestNpmGlobalsRole(unittest.TestCase):
             "Expected npm_global_packages to be declared as a list in group_vars/all.yml",
         )
 
-        for pkg in (
-            "@anthropic-ai/claude-code",
-            "@socketsecurity/cli",
-        ):
+        for pkg in ("@socketsecurity/cli",):
             with self.subTest(pkg=pkg):
                 self.assertIn(pkg, packages)
 
@@ -43,6 +40,76 @@ class TestNpmGlobalsRole(unittest.TestCase):
             "Copilot CLI must be installed via Homebrew formula "
             "`copilot-cli`, not the archived @githubnext npm package",
         )
+        # Claude Code has its own official install script
+        # (curl -fsSL https://claude.ai/install.sh | bash) — it must NOT
+        # be installed as a pnpm global.
+        self.assertNotIn(
+            "@anthropic-ai/claude-code",
+            packages,
+            "Claude Code must be installed via its official install script, "
+            "not as a pnpm global",
+        )
+
+    def test_claude_code_install_url_declared_in_group_vars(self):
+        data = yaml.safe_load(self.vars_file.read_text(encoding="utf-8"))
+        url = data.get("claude_code_install_url")
+        self.assertIsInstance(
+            url,
+            str,
+            "Expected claude_code_install_url to be declared in group_vars/all.yml",
+        )
+        self.assertEqual(
+            url,
+            "https://claude.ai/install.sh",
+            "Expected claude_code_install_url to point at https://claude.ai/install.sh",
+        )
+
+    def test_claude_code_installed_via_official_install_script(self):
+        """Claude Code ships via `curl -fsSL https://claude.ai/install.sh | bash`.
+
+        Expect a shell task that runs this installer by referencing the
+        `claude_code_install_url` group_var, guarded with `creates:` on the
+        resulting binary path so re-runs are no-ops.
+        """
+        tasks = self._load_tasks()
+
+        claude_tasks = [
+            task
+            for task in tasks
+            if isinstance(task, dict)
+            and "ansible.builtin.shell" in task
+            and "claude_code_install_url" in str(task["ansible.builtin.shell"])
+        ]
+        self.assertGreaterEqual(
+            len(claude_tasks),
+            1,
+            "Expected an ansible.builtin.shell task that runs the Claude "
+            "Code official install script (curl https://claude.ai/install.sh | bash)",
+        )
+
+        for task in claude_tasks:
+            with self.subTest(task=task.get("name", "unnamed")):
+                module_cfg = task["ansible.builtin.shell"]
+                cmd_str = str(module_cfg)
+                self.assertIn("curl", cmd_str)
+                self.assertIn("-fsSL", cmd_str)
+
+                # Must be guarded via `creates:` for idempotency.
+                creates_value = None
+                if isinstance(module_cfg, dict):
+                    creates_value = module_cfg.get("creates")
+                if not creates_value:
+                    creates_value = (task.get("args") or {}).get("creates")
+                self.assertTrue(
+                    creates_value,
+                    "Expected Claude Code install task to use `creates:` "
+                    "for idempotency",
+                )
+                self.assertIn(
+                    "claude",
+                    str(creates_value),
+                    "Expected `creates:` to point at the installed claude binary",
+                )
 
     def test_copilot_cli_installed_via_homebrew_formula(self):
         data = yaml.safe_load(self.vars_file.read_text(encoding="utf-8"))

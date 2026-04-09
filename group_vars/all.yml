@@ -32,7 +32,6 @@ homebrew_casks:
 # Global npm packages installed via pnpm.
 # Add or remove entries to customize global tools.
 npm_global_packages:
-  - "@anthropic-ai/claude-code"
   - "@socketsecurity/cli"
 
 # Nerd Font installed via Homebrew Cask (required for Starship icons).
@@ -44,3 +43,8 @@ xcode_app_store_id: 497799835
 # pnpm standalone installer URL (used by the languages role to bootstrap pnpm
 # before Node is available). Update if the upstream install script URL changes.
 pnpm_install_url: https://get.pnpm.io/install.sh
+
+# Claude Code official install script URL (used by the npm_globals role).
+# Claude Code does NOT ship as a pnpm global; it has its own installer that
+# lands the `claude` binary at ~/.local/bin/claude.
+claude_code_install_url: https://claude.ai/install.sh

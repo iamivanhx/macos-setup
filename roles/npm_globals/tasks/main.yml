@@ -14,6 +14,12 @@
       role first (ansible-playbook playbook.yml --tags languages) so pnpm and
       Node LTS are available before installing global npm packages.
 
+- name: npm_globals | install Claude Code via official install script
+  ansible.builtin.shell: >-
+    curl -fsSL {{ claude_code_install_url }} | bash
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/claude"
+
 - name: npm_globals | list currently installed pnpm global packages
   ansible.builtin.command: "{{ ansible_env.HOME }}/.local/share/pnpm/pnpm list -g --depth=0 --parseable"
   register: pnpm_global_list
