@@ -1,0 +1,63 @@
+---
+# CLI binaries expected on the user's PATH after all previous roles run.
+# Names reflect the *actual* install decisions from issues 003-010:
+#   - copilot       : Homebrew `copilot-cli` formula (not the archived npm pkg)
+#   - claude        : official install script at ~/.local/bin/claude
+#   - socket, sfw   : pnpm globals (@socketsecurity/cli, sfw)
+#   - pnpm, node    : bootstrapped by the `languages` role under
+#                     ~/.local/share/pnpm
+verify_cli_tools:
+  - git
+  - gh
+  - vim
+  - mas
+  - starship
+  - curl
+  - wget
+  - jq
+  - tree
+  - rg
+  - fd
+  - bat
+  - htop
+  - tldr
+  - uv
+  - pnpm
+  - node
+  - copilot
+  - claude
+  - socket
+  - sfw
+
+# GUI applications expected in /Applications.
+verify_gui_apps:
+  - 1Password.app
+  - Google Chrome.app
+  - Discord.app
+  - Obsidian.app
+  - Visual Studio Code.app
+  - iTerm.app
+  - Xcode.app
+
+# Config files expected on disk (SSH key pair, starship.toml, zshrc).
+verify_config_files:
+  - label: SSH private key
+    path: "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+  - label: SSH public key
+    path: "{{ ansible_env.HOME }}/.ssh/id_ed25519.pub"
+  - label: Starship config
+    path: "{{ ansible_env.HOME }}/.config/starship.toml"
+  - label: Zsh rc file
+    path: "{{ ansible_env.HOME }}/.zshrc"
+
+# macOS defaults spot-checks (domain/key/label).
+verify_macos_defaults:
+  - label: Finder show hidden files
+    domain: com.apple.finder
+    key: AppleShowAllFiles
+  - label: Dock auto-hide
+    domain: com.apple.dock
+    key: autohide
+  - label: Fast key repeat
+    domain: NSGlobalDomain
+    key: KeyRepeat

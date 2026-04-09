@@ -1,4 +1,112 @@
 ---
-- name: verify | placeholder
+# ── CLI tools ────────────────────────────────────────────────────────────────
+- name: verify | probe CLI tools with `command -v`
+  ansible.builtin.shell: "command -v {{ item }}"
+  loop: "{{ verify_cli_tools }}"
+  register: verify_cli_results
+  changed_when: false
+  failed_when: false
+  environment:
+    PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.HOME }}/.local/share/pnpm:{{ ansible_env.PATH }}"
+
+# ── GUI applications ─────────────────────────────────────────────────────────
+- name: verify | probe GUI applications in /Applications
+  ansible.builtin.stat:
+    path: "/Applications/{{ item }}"
+  loop: "{{ verify_gui_apps }}"
+  register: verify_gui_results
+
+# ── Config files ─────────────────────────────────────────────────────────────
+- name: verify | probe expected config files
+  ansible.builtin.stat:
+    path: "{{ item.path }}"
+  loop: "{{ verify_config_files }}"
+  register: verify_config_results
+
+# ── Git config ───────────────────────────────────────────────────────────────
+- name: verify | probe git global user.name
+  ansible.builtin.command: git config --global user.name
+  register: verify_git_user_name
+  changed_when: false
+  failed_when: false
+  environment:
+    PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:{{ ansible_env.PATH }}"
+
+- name: verify | probe git global user.email
+  ansible.builtin.command: git config --global user.email
+  register: verify_git_user_email
+  changed_when: false
+  failed_when: false
+  environment:
+    PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:{{ ansible_env.PATH }}"
+
+# ── Starship init line in zshrc ──────────────────────────────────────────────
+- name: verify | probe Starship init line in ~/.zshrc
+  ansible.builtin.command: "grep -F 'starship init zsh' {{ ansible_env.HOME }}/.zshrc"
+  register: verify_starship_init
+  changed_when: false
+  failed_when: false
+
+# ── macOS defaults spot-checks ───────────────────────────────────────────────
+- name: verify | spot-check macOS defaults
+  ansible.builtin.command: "defaults read {{ item.domain }} {{ item.key }}"
+  loop: "{{ verify_macos_defaults }}"
+  register: verify_defaults_results
+  changed_when: false
+  failed_when: false
+
+# ── Summary ──────────────────────────────────────────────────────────────────
+- name: verify | aggregate results
+  ansible.builtin.set_fact:
+    verify_report:
+      cli: >-
+        {{ verify_cli_results.results
+           | map(attribute='rc') | list }}
+      gui_missing: >-
+        {{ verify_gui_results.results
+           | rejectattr('stat.exists') | map(attribute='item') | list }}
+      cli_missing: >-
+        {{ verify_cli_results.results
+           | rejectattr('rc', 'equalto', 0)
+           | map(attribute='item') | list }}
+      config_missing: >-
+        {{ verify_config_results.results
+           | rejectattr('stat.exists')
+           | map(attribute='item.label') | list }}
+      defaults_missing: >-
+        {{ verify_defaults_results.results
+           | rejectattr('rc', 'equalto', 0)
+           | map(attribute='item.label') | list }}
+      git_user_name_ok: "{{ verify_git_user_name.rc == 0 and verify_git_user_name.stdout | length > 0 }}"
+      git_user_email_ok: "{{ verify_git_user_email.rc == 0 and verify_git_user_email.stdout | length > 0 }}"
+      starship_init_ok: "{{ verify_starship_init.rc == 0 }}"
+
+- name: verify | compute pass/fail counts
+  ansible.builtin.set_fact:
+    verify_total: >-
+      {{ (verify_cli_tools | length)
+         + (verify_gui_apps | length)
+         + (verify_config_files | length)
+         + (verify_macos_defaults | length)
+         + 3 }}
+    verify_failed: >-
+      {{ (verify_report.cli_missing | length)
+         + (verify_report.gui_missing | length)
+         + (verify_report.config_missing | length)
+         + (verify_report.defaults_missing | length)
+         + (0 if verify_report.git_user_name_ok else 1)
+         + (0 if verify_report.git_user_email_ok else 1)
+         + (0 if verify_report.starship_init_ok else 1) }}
+
+- name: verify | print summary report
   ansible.builtin.debug:
-    msg: "verify role not yet implemented"
+    msg:
+      - "=== macos-setup verify report ==="
+      - "{{ (verify_total | int) - (verify_failed | int) }}/{{ verify_total }} checks passed"
+      - "Missing CLI tools:      {{ verify_report.cli_missing | default([]) }}"
+      - "Missing GUI apps:       {{ verify_report.gui_missing | default([]) }}"
+      - "Missing config files:   {{ verify_report.config_missing | default([]) }}"
+      - "Missing macOS defaults: {{ verify_report.defaults_missing | default([]) }}"
+      - "git user.name set:      {{ verify_report.git_user_name_ok }}"
+      - "git user.email set:     {{ verify_report.git_user_email_ok }}"
+      - "starship init in zshrc: {{ verify_report.starship_init_ok }}"

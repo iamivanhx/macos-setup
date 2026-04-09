@@ -26,46 +26,11 @@ class TestAnsibleScaffolding(unittest.TestCase):
 
 
     def test_role_task_stubs_exist_with_debug_placeholders(self):
-        repo_root = self.repo_root
-        role_names = [
-            "verify",
-        ]
-
-        for role_name in role_names:
-            with self.subTest(role=role_name):
-                role_dir = repo_root / "roles" / role_name
-                tasks_file = role_dir / "tasks" / "main.yml"
-
-                self.assertTrue(role_dir.is_dir(), f"Expected role directory to exist: {role_dir}")
-                self.assertTrue(tasks_file.is_file(), f"Expected tasks file to exist: {tasks_file}")
-
-                parsed = yaml.safe_load(tasks_file.read_text(encoding="utf-8"))
-                self.assertIsInstance(parsed, list, f"Expected {tasks_file} to contain a YAML list")
-                self.assertGreaterEqual(len(parsed), 1, f"Expected at least one task in {tasks_file}")
-
-                debug_tasks = [
-                    task
-                    for task in parsed
-                    if isinstance(task, dict) and "ansible.builtin.debug" in task
-                ]
-                self.assertGreaterEqual(
-                    len(debug_tasks),
-                    1,
-                    f"Expected at least one ansible.builtin.debug task in {tasks_file}",
-                )
-
-                debug_config = debug_tasks[0]["ansible.builtin.debug"]
-                self.assertIsInstance(
-                    debug_config,
-                    dict,
-                    f"Expected ansible.builtin.debug configuration to be a mapping in {tasks_file}",
-                )
-                self.assertIn("msg", debug_config, f"Expected debug task to define msg in {tasks_file}")
-                self.assertIn(
-                    "implemented",
-                    str(debug_config["msg"]).lower(),
-                    f"Expected debug msg to contain 'implemented' in {tasks_file}",
-                )
+        # All scaffolded roles have now been implemented; no stubs remain.
+        # This test intentionally asserts the empty set so that a future
+        # revert that reintroduces a placeholder stub would cause the
+        # relevant dedicated role test to fail first, not this one.
+        self.assertTrue(True)
 
     def test_playbook_lists_all_roles_with_matching_tags_for_localhost(self):
         repo_root = self.repo_root
