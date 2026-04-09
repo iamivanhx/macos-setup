@@ -1,4 +1,26 @@
 ---
-- name: terminal | placeholder
-  ansible.builtin.debug:
-    msg: "terminal role not yet implemented"
+- name: terminal | install Nerd Font via Homebrew Cask
+  community.general.homebrew_cask:
+    name: "{{ nerd_font_cask }}"
+    state: present
+    accept_external_apps: true
+
+- name: terminal | ensure ~/.config directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config"
+    state: directory
+    mode: "0755"
+
+- name: terminal | generate Starship gruvbox-rainbow preset (preserves user edits)
+  ansible.builtin.command: >-
+    starship preset gruvbox-rainbow
+    -o {{ ansible_env.HOME }}/.config/starship.toml
+  args:
+    creates: "{{ ansible_env.HOME }}/.config/starship.toml"
+
+- name: terminal | add Starship init line to ~/.zshrc
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    line: 'eval "$(starship init zsh)"'
+    create: true
+    mode: "0644"
