@@ -159,7 +159,7 @@ run_playbook() {
 
 main() {
     local repo_dir="${MACOS_SETUP_DIR:-${HOME}/macos-setup}"
-    local repo_url="${MACOS_SETUP_REPO_URL:-https://github.com/ivanhx/macos-setup.git}"
+    local repo_url="${MACOS_SETUP_REPO_URL:-https://github.com/iamivanhx/macos-setup.git}"
 
     # Prevent concurrent runs.
     if [[ -e "$LOCK_FILE" ]]; then
