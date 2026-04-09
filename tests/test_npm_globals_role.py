@@ -29,11 +29,30 @@ class TestNpmGlobalsRole(unittest.TestCase):
 
         for pkg in (
             "@anthropic-ai/claude-code",
-            "@githubnext/github-copilot-cli",
             "@socketsecurity/cli",
         ):
             with self.subTest(pkg=pkg):
                 self.assertIn(pkg, packages)
+
+        # The archived @githubnext/github-copilot-cli npm package must NOT be
+        # installed here — Copilot CLI ships as the `copilot-cli` Homebrew
+        # formula (installed via the homebrew role).
+        self.assertNotIn(
+            "@githubnext/github-copilot-cli",
+            packages,
+            "Copilot CLI must be installed via Homebrew formula "
+            "`copilot-cli`, not the archived @githubnext npm package",
+        )
+
+    def test_copilot_cli_installed_via_homebrew_formula(self):
+        data = yaml.safe_load(self.vars_file.read_text(encoding="utf-8"))
+        formulae = data.get("homebrew_formulae") or []
+        self.assertIn(
+            "copilot-cli",
+            formulae,
+            "Expected `copilot-cli` Homebrew formula in homebrew_formulae "
+            "(installs the GitHub Copilot CLI at /opt/homebrew/bin/copilot)",
+        )
 
     def _install_tasks(self, tasks):
         return [

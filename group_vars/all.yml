@@ -17,6 +17,7 @@ homebrew_formulae:
   - htop
   - tldr
   - uv
+  - copilot-cli
 
 # GUI applications installed via Homebrew Cask.
 # Add or remove entries to customize installed apps.
@@ -32,7 +33,6 @@ homebrew_casks:
 # Add or remove entries to customize global tools.
 npm_global_packages:
   - "@anthropic-ai/claude-code"
-  - "@githubnext/github-copilot-cli"
   - "@socketsecurity/cli"
 
 # Nerd Font installed via Homebrew Cask (required for Starship icons).
