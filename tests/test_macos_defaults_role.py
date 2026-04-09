@@ -229,16 +229,7 @@ class TestMacosDefaultsRole(unittest.TestCase):
             "Expected an ansible.builtin.file task ensuring ~/Downloads exists",
         )
 
-    def test_system_defaults_crash_reporter_and_time_machine(self):
-        crash = self._defaults_tasks(
-            domain="com.apple.CrashReporter",
-            key="DialogType",
-        )
-        self.assertGreaterEqual(
-            len(crash),
-            1,
-            "Expected CrashReporter DialogType osx_defaults task",
-        )
+    def test_system_defaults_time_machine_present(self):
         tm = self._defaults_tasks(
             domain="com.apple.TimeMachine",
             key="DoNotOfferNewDisksForBackup",
@@ -247,4 +238,39 @@ class TestMacosDefaultsRole(unittest.TestCase):
             len(tm),
             1,
             "Expected TimeMachine DoNotOfferNewDisksForBackup osx_defaults task",
+        )
+
+    def test_does_not_try_to_set_battery_show_percentage(self):
+        """macOS Ventura+ (including Tahoe 26.x) stores the Control Center
+        battery percentage toggle inside an opaque base64-encoded binary
+        plist under the `boxes` key of
+        com.apple.controlcenter.bentoboxes.<UUID>.plist. It is NOT writable
+        via `defaults write com.apple.controlcenter BatteryShowPercentage`
+        (the task silently no-ops). Must not be in the role."""
+        tasks = self._tasks()
+        for task in tasks:
+            if not isinstance(task, dict):
+                continue
+            cfg = task.get("community.general.osx_defaults")
+            if not isinstance(cfg, dict):
+                continue
+            self.assertNotEqual(
+                cfg.get("key"),
+                "BatteryShowPercentage",
+                "BatteryShowPercentage is not writable via defaults on "
+                "Ventura+ / Tahoe \u2014 remove this task",
+            )
+
+    def test_does_not_set_legacy_crashreporter_dialog_type(self):
+        """CrashReporter DialogType is a legacy key not documented by the
+        actively-maintained yannbertrand/macos-defaults reference. Unverified
+        on Tahoe 26.x. Removed per user decision."""
+        tasks = self._defaults_tasks(
+            domain="com.apple.CrashReporter",
+            key="DialogType",
+        )
+        self.assertEqual(
+            len(tasks),
+            0,
+            "CrashReporter DialogType is unverified on Tahoe \u2014 remove it",
         )

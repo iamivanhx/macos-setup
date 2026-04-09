@@ -201,12 +201,10 @@
     value: true
 
 # ── System ────────────────────────────────────────────────────────────────────
-- name: macos_defaults | System | disable crash reporter dialog
-  community.general.osx_defaults:
-    domain: com.apple.CrashReporter
-    key: DialogType
-    type: string
-    value: none
+# NOTE: com.apple.CrashReporter DialogType intentionally omitted. It is a
+# legacy key not documented by the actively-maintained
+# yannbertrand/macos-defaults reference and its behavior on macOS Tahoe
+# (26.x) is unverified.
 
 - name: macos_defaults | System | prevent Time Machine disk offers
   community.general.osx_defaults:
@@ -216,10 +214,9 @@
     value: true
 
 # ── Menu Bar ──────────────────────────────────────────────────────────────────
-- name: macos_defaults | Menu Bar | show battery percentage
-  community.general.osx_defaults:
-    domain: com.apple.controlcenter
-    key: BatteryShowPercentage
-    type: bool
-    value: true
-  notify: restart SystemUIServer
+# NOTE: Battery percentage toggle intentionally omitted. On macOS Ventura and
+# later (including Tahoe 26.x) it lives inside an opaque base64-encoded
+# binary plist under the `boxes` key of
+# com.apple.controlcenter.bentoboxes.<UUID>.plist and is NOT writable via
+# `defaults write com.apple.controlcenter BatteryShowPercentage`. Toggle it
+# manually in System Settings \u2192 Control Center \u2192 Battery \u2192 Show Percentage.
