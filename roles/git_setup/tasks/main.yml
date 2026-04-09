@@ -1,4 +1,134 @@
 ---
-- name: git_setup | placeholder
+- name: git_setup | set global git user.name
+  community.general.git_config:
+    name: user.name
+    scope: global
+    value: "{{ git_user_name }}"
+
+- name: git_setup | set global git user.email
+  community.general.git_config:
+    name: user.email
+    scope: global
+    value: "{{ git_user_email }}"
+
+- name: git_setup | ensure ~/.ssh directory exists with mode 0700
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: "0700"
+
+- name: git_setup | check whether ed25519 SSH key already exists
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+  register: ssh_key_stat
+
+- name: git_setup | prompt to skip or overwrite existing SSH key (HITL)
+  ansible.builtin.pause:
+    prompt: |
+      An ed25519 SSH key already exists at ~/.ssh/id_ed25519. Type
+      `overwrite` to replace it with a new key, or press ENTER to skip
+      key generation and keep the existing key.
+  register: ssh_key_overwrite_choice
+  when: ssh_key_stat.stat.exists
+
+- name: git_setup | remove existing SSH key pair when overwrite was chosen
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+    - "{{ ansible_env.HOME }}/.ssh/id_ed25519.pub"
+  when:
+    - ssh_key_stat.stat.exists
+    - ssh_key_overwrite_choice is defined
+    - (ssh_key_overwrite_choice.user_input | default('') | trim | lower) == 'overwrite'
+
+- name: git_setup | generate ed25519 SSH key when missing or user chose overwrite
+  ansible.builtin.command:
+    argv:
+      - ssh-keygen
+      - -t
+      - ed25519
+      - -C
+      - "{{ git_user_email }}"
+      - -f
+      - "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+      - -N
+      - ""
+  when: >-
+    not ssh_key_stat.stat.exists
+    or (
+      ssh_key_overwrite_choice is defined
+      and (ssh_key_overwrite_choice.user_input | default('') | trim | lower) == 'overwrite'
+    )
+
+- name: git_setup | enforce private SSH key permissions (0600)
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+    mode: "0600"
+
+- name: git_setup | enforce public SSH key permissions (0644)
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh/id_ed25519.pub"
+    mode: "0644"
+
+- name: git_setup | add SSH key to ssh-agent
+  ansible.builtin.command: "ssh-add {{ ansible_env.HOME }}/.ssh/id_ed25519"
+  register: ssh_add_result
+  changed_when: "'Identity added' in ssh_add_result.stderr or 'Identity added' in ssh_add_result.stdout"
+  failed_when: false
+
+- name: git_setup | check gh CLI authentication status
+  ansible.builtin.command: gh auth status
+  register: gh_auth_status
+  changed_when: false
+  failed_when: false
+
+- name: git_setup | pause for gh CLI authentication (HITL)
+  ansible.builtin.pause:
+    prompt: |
+      The GitHub CLI (`gh`) is not authenticated. Open another terminal
+      and run `gh auth login` (choose GitHub.com, HTTPS, authenticate
+      via web browser). When gh reports success, press ENTER here to
+      continue. Press Ctrl-C then A to abort.
+  when: gh_auth_status.rc != 0
+
+- name: git_setup | re-check gh CLI authentication after pause
+  ansible.builtin.command: gh auth status
+  register: gh_auth_status_recheck
+  changed_when: false
+  failed_when: false
+  when: gh_auth_status.rc != 0
+
+- name: git_setup | fail with clear error if gh is still unauthenticated
+  ansible.builtin.fail:
+    msg: >-
+      gh CLI is still not authenticated after the pause. Run
+      `gh auth login` manually, then re-run this role with
+      `--tags git_setup`.
+  when:
+    - gh_auth_status.rc != 0
+    - gh_auth_status_recheck.rc is defined
+    - gh_auth_status_recheck.rc != 0
+
+- name: git_setup | upload SSH public key to GitHub via gh
+  ansible.builtin.command: >-
+    gh ssh-key add {{ ansible_env.HOME }}/.ssh/id_ed25519.pub
+    --title "{{ ansible_hostname | default(inventory_hostname) }}"
+  register: gh_ssh_key_add_result
+  changed_when: gh_ssh_key_add_result.rc == 0
+  failed_when: >-
+    gh_ssh_key_add_result.rc != 0
+    and 'already exists' not in (gh_ssh_key_add_result.stderr | default(''))
+    and 'key is already in use' not in (gh_ssh_key_add_result.stderr | default(''))
+
+- name: git_setup | read generated SSH public key for display
+  ansible.builtin.slurp:
+    src: "{{ ansible_env.HOME }}/.ssh/id_ed25519.pub"
+  register: ssh_pubkey_slurp
+
+- name: git_setup | display public key for manual copying if needed
   ansible.builtin.debug:
-    msg: "git_setup role not yet implemented"
+    msg: |
+      SSH public key (already uploaded to GitHub via gh if authenticated):
+      {{ ssh_pubkey_slurp.content | b64decode }}
