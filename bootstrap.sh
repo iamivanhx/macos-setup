@@ -202,6 +202,6 @@ main() {
 }
 
 # Run main only when executed directly, not when sourced (enables unit testing).
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [[ "${BASH_SOURCE[0]:-$0}" == "${0}" ]]; then
     main "$@"
 fi
