@@ -28,7 +28,6 @@ class TestAnsibleScaffolding(unittest.TestCase):
     def test_role_task_stubs_exist_with_debug_placeholders(self):
         repo_root = self.repo_root
         role_names = [
-            "npm_globals",
             "git_setup",
             "terminal",
             "macos_defaults",

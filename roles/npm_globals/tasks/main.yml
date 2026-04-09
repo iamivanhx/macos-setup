@@ -1,4 +1,26 @@
 ---
-- name: npm_globals | placeholder
-  ansible.builtin.debug:
-    msg: "npm_globals role not yet implemented"
+- name: npm_globals | probe pnpm binary presence
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.local/share/pnpm/pnpm"
+  register: pnpm_binary_stat
+
+- name: npm_globals | assert pnpm is installed before installing globals
+  ansible.builtin.assert:
+    that:
+      - pnpm_binary_stat.stat.exists
+      - pnpm_binary_stat.stat.executable | default(false)
+    fail_msg: >-
+      pnpm is not installed at ~/.local/share/pnpm/pnpm. Run the `languages`
+      role first (ansible-playbook playbook.yml --tags languages) so pnpm and
+      Node LTS are available before installing global npm packages.
+
+- name: npm_globals | list currently installed pnpm global packages
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/share/pnpm/pnpm list -g --depth=0 --parseable"
+  register: pnpm_global_list
+  changed_when: false
+
+- name: npm_globals | install global packages via pnpm add -g
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/share/pnpm/pnpm add -g {{ item }}"
+  loop: "{{ npm_global_packages }}"
+  when: item not in pnpm_global_list.stdout
+  ignore_errors: true
