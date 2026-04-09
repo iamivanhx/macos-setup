@@ -1,0 +1,4 @@
+---
+- name: git_setup | placeholder
+  ansible.builtin.debug:
+    msg: "git_setup role not yet implemented"

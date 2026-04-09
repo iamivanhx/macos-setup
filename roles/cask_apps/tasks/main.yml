@@ -1,0 +1,4 @@
+---
+- name: cask_apps | placeholder
+  ansible.builtin.debug:
+    msg: "cask_apps role not yet implemented"

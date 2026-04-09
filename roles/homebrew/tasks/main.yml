@@ -1,0 +1,4 @@
+---
+- name: homebrew | placeholder
+  ansible.builtin.debug:
+    msg: "homebrew role not yet implemented"

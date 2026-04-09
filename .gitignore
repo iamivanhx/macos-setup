@@ -1,0 +1,6 @@
+# Per-machine Claude settings (absolute paths); see .claude/settings.local.json.example
+.claude/settings.local.json
+
+# Ansible runtime artifacts
+.ansible/
+*.retry

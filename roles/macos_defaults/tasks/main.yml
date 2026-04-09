@@ -1,0 +1,4 @@
+---
+- name: macos_defaults | placeholder
+  ansible.builtin.debug:
+    msg: "macos_defaults role not yet implemented"

@@ -1,0 +1,42 @@
+---
+# Core CLI tools installed via Homebrew formulae.
+# Add or remove entries to customize your toolset.
+homebrew_formulae:
+  - git
+  - gh
+  - vim
+  - mas
+  - starship
+  - curl
+  - wget
+  - jq
+  - tree
+  - ripgrep
+  - fd
+  - bat
+  - htop
+  - tldr
+  - uv
+
+# GUI applications installed via Homebrew Cask.
+# Add or remove entries to customize installed apps.
+homebrew_casks:
+  - 1password
+  - google-chrome
+  - discord
+  - obsidian
+  - visual-studio-code
+  - iterm2
+
+# Global npm packages installed via pnpm.
+# Add or remove entries to customize global tools.
+npm_global_packages:
+  - "@anthropic-ai/claude-code"
+  - "@githubnext/github-copilot-cli"
+  - "@socketsecurity/cli"
+
+# Nerd Font installed via Homebrew Cask (required for Starship icons).
+nerd_font_cask: font-hack-nerd-font
+
+# Xcode App Store ID (used by the mas CLI to install full Xcode).
+xcode_app_store_id: 497799835

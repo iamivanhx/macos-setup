@@ -1,0 +1,4 @@
+---
+- name: npm_globals | placeholder
+  ansible.builtin.debug:
+    msg: "npm_globals role not yet implemented"

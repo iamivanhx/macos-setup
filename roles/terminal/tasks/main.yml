@@ -1,0 +1,4 @@
+---
+- name: terminal | placeholder
+  ansible.builtin.debug:
+    msg: "terminal role not yet implemented"

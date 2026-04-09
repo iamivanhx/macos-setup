@@ -1,0 +1,4 @@
+---
+- name: verify | placeholder
+  ansible.builtin.debug:
+    msg: "verify role not yet implemented"

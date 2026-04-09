@@ -1,0 +1,33 @@
+---
+- name: macOS Developer Machine Setup
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  roles:
+    - role: homebrew
+      tags: [homebrew]
+
+    - role: cask_apps
+      tags: [cask_apps]
+
+    - role: xcode
+      tags: [xcode]
+
+    - role: languages
+      tags: [languages]
+
+    - role: npm_globals
+      tags: [npm_globals]
+
+    - role: git_setup
+      tags: [git_setup]
+
+    - role: terminal
+      tags: [terminal]
+
+    - role: macos_defaults
+      tags: [macos_defaults]
+
+    - role: verify
+      tags: [verify]
