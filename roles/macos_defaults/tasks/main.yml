@@ -1,4 +1,225 @@
 ---
-- name: macos_defaults | placeholder
-  ansible.builtin.debug:
-    msg: "macos_defaults role not yet implemented"
+# ── Finder ────────────────────────────────────────────────────────────────────
+- name: macos_defaults | Finder | show hidden files
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: AppleShowAllFiles
+    type: bool
+    value: true
+  notify: restart Finder
+
+- name: macos_defaults | Finder | show all filename extensions
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: AppleShowAllExtensions
+    type: bool
+    value: true
+  notify: restart Finder
+
+- name: macos_defaults | Finder | show path bar
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: ShowPathbar
+    type: bool
+    value: true
+  notify: restart Finder
+
+- name: macos_defaults | Finder | show status bar
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: ShowStatusBar
+    type: bool
+    value: true
+  notify: restart Finder
+
+- name: macos_defaults | Finder | keep folders on top when sorting
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: _FXSortFoldersFirst
+    type: bool
+    value: true
+  notify: restart Finder
+
+- name: macos_defaults | Finder | set new window target to home directory
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: NewWindowTarget
+    type: string
+    value: PfHm
+  notify: restart Finder
+
+- name: macos_defaults | Finder | set new window target path to home directory
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: NewWindowTargetPath
+    type: string
+    value: "file://{{ ansible_env.HOME }}/"
+  notify: restart Finder
+
+- name: macos_defaults | Finder | disable extension change warning
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: FXEnableExtensionChangeWarning
+    type: bool
+    value: false
+  notify: restart Finder
+
+# ── Dock ──────────────────────────────────────────────────────────────────────
+- name: macos_defaults | Dock | auto-hide
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: autohide
+    type: bool
+    value: true
+  notify: restart Dock
+
+- name: macos_defaults | Dock | no auto-hide delay
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: autohide-delay
+    type: float
+    value: 0
+  notify: restart Dock
+
+- name: macos_defaults | Dock | no auto-hide animation time
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: autohide-time-modifier
+    type: float
+    value: 0
+  notify: restart Dock
+
+- name: macos_defaults | Dock | minimize windows to application icon
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: minimize-to-application
+    type: bool
+    value: true
+  notify: restart Dock
+
+- name: macos_defaults | Dock | fast Mission Control animation
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: expose-animation-duration
+    type: float
+    value: 0.1
+  notify: restart Dock
+
+# ── Keyboard & Input ──────────────────────────────────────────────────────────
+- name: macos_defaults | Keyboard | disable press-and-hold for keys
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: ApplePressAndHoldEnabled
+    type: bool
+    value: false
+
+- name: macos_defaults | Keyboard | fast key repeat
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: KeyRepeat
+    type: int
+    value: 1
+
+- name: macos_defaults | Keyboard | short initial key repeat delay
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: InitialKeyRepeat
+    type: int
+    value: 15
+
+- name: macos_defaults | Keyboard | full keyboard access for all controls
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: AppleKeyboardUIMode
+    type: int
+    value: 3
+
+- name: macos_defaults | Input | disable auto-correct
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: NSAutomaticSpellingCorrectionEnabled
+    type: bool
+    value: false
+
+- name: macos_defaults | Input | disable smart quotes
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: NSAutomaticQuoteSubstitutionEnabled
+    type: bool
+    value: false
+
+- name: macos_defaults | Input | disable smart dashes
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: NSAutomaticDashSubstitutionEnabled
+    type: bool
+    value: false
+
+- name: macos_defaults | Input | disable auto-capitalize
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: NSAutomaticCapitalizationEnabled
+    type: bool
+    value: false
+
+- name: macos_defaults | Input | disable auto-period substitution
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: NSAutomaticPeriodSubstitutionEnabled
+    type: bool
+    value: false
+
+# ── Screenshots ───────────────────────────────────────────────────────────────
+- name: macos_defaults | ensure ~/Downloads directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/Downloads"
+    state: directory
+    mode: "0755"
+
+- name: macos_defaults | Screenshots | save to ~/Downloads
+  community.general.osx_defaults:
+    domain: com.apple.screencapture
+    key: location
+    type: string
+    value: "{{ ansible_env.HOME }}/Downloads"
+  notify: restart SystemUIServer
+
+- name: macos_defaults | Screenshots | disable shadow
+  community.general.osx_defaults:
+    domain: com.apple.screencapture
+    key: disable-shadow
+    type: bool
+    value: true
+  notify: restart SystemUIServer
+
+# ── Xcode ─────────────────────────────────────────────────────────────────────
+- name: macos_defaults | Xcode | show build operation durations
+  community.general.osx_defaults:
+    domain: com.apple.dt.Xcode
+    key: ShowBuildOperationDuration
+    type: bool
+    value: true
+
+# ── System ────────────────────────────────────────────────────────────────────
+- name: macos_defaults | System | disable crash reporter dialog
+  community.general.osx_defaults:
+    domain: com.apple.CrashReporter
+    key: DialogType
+    type: string
+    value: none
+
+- name: macos_defaults | System | prevent Time Machine disk offers
+  community.general.osx_defaults:
+    domain: com.apple.TimeMachine
+    key: DoNotOfferNewDisksForBackup
+    type: bool
+    value: true
+
+# ── Menu Bar ──────────────────────────────────────────────────────────────────
+- name: macos_defaults | Menu Bar | show battery percentage
+  community.general.osx_defaults:
+    domain: com.apple.controlcenter
+    key: BatteryShowPercentage
+    type: bool
+    value: true
+  notify: restart SystemUIServer
