@@ -72,8 +72,20 @@
     path: "{{ ansible_env.HOME }}/.ssh/id_ed25519.pub"
     mode: "0644"
 
-- name: git_setup | add SSH key to ssh-agent
-  ansible.builtin.command: "ssh-add {{ ansible_env.HOME }}/.ssh/id_ed25519"
+- name: git_setup | ensure ~/.ssh/config enables Keychain + agent persistence
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.ssh/config"
+    create: true
+    mode: "0600"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK macos-setup/git_setup"
+    block: |
+      Host *
+        AddKeysToAgent yes
+        UseKeychain yes
+        IdentityFile ~/.ssh/id_ed25519
+
+- name: git_setup | add SSH key to ssh-agent with macOS Keychain integration
+  ansible.builtin.command: "ssh-add --apple-use-keychain {{ ansible_env.HOME }}/.ssh/id_ed25519"
   register: ssh_add_result
   changed_when: "'Identity added' in ssh_add_result.stderr or 'Identity added' in ssh_add_result.stdout"
   failed_when: false

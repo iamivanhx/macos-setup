@@ -262,6 +262,59 @@ class TestGitSetupRole(unittest.TestCase):
             1,
             "Expected an ansible.builtin.command task running ssh-add on the SSH key",
         )
+        # Must pass --apple-use-keychain for macOS Keychain integration so
+        # any passphrase (if the user later adds one) persists across reboots.
+        for task in ssh_add_tasks:
+            with self.subTest(task=task.get("name", "unnamed")):
+                self.assertIn(
+                    "--apple-use-keychain",
+                    str(task["ansible.builtin.command"]),
+                    "Expected ssh-add to use --apple-use-keychain on macOS",
+                )
+
+    def test_writes_ssh_config_for_keychain_and_agent_persistence(self):
+        """For keys loaded across reboots on macOS, ssh needs a config entry
+        that enables AddKeysToAgent + UseKeychain and points IdentityFile at
+        the generated key."""
+        tasks = self._load_tasks()
+
+        config_tasks = [
+            task
+            for task in tasks
+            if isinstance(task, dict)
+            and (
+                "ansible.builtin.blockinfile" in task
+                or "ansible.builtin.copy" in task
+                or "ansible.builtin.template" in task
+                or "ansible.builtin.lineinfile" in task
+            )
+            and ".ssh/config" in str(task).lower()
+        ]
+        self.assertGreaterEqual(
+            len(config_tasks),
+            1,
+            "Expected a task writing to ~/.ssh/config for Keychain/agent persistence",
+        )
+
+        # The task must set 0600 mode and include the three directives.
+        for task in config_tasks:
+            with self.subTest(task=task.get("name", "unnamed")):
+                module_key = next(
+                    key for key in task
+                    if key.startswith("ansible.builtin.")
+                )
+                cfg = task[module_key]
+                self.assertIsInstance(cfg, dict)
+                self.assertIn(
+                    str(cfg.get("mode")),
+                    ("0600", "600", "u=rw,go="),
+                    "Expected ssh config mode 0600",
+                )
+                body = str(cfg)
+                self.assertIn("AddKeysToAgent", body)
+                self.assertIn("UseKeychain", body)
+                self.assertIn("IdentityFile", body)
+                self.assertIn("id_ed25519", body)
 
     def test_checks_gh_auth_status_then_pauses_and_uploads_key(self):
         tasks = self._load_tasks()
