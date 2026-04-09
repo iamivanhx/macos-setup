@@ -33,6 +33,7 @@ homebrew_casks:
 # Add or remove entries to customize global tools.
 npm_global_packages:
   - "@socketsecurity/cli"
+  - sfw
 
 # Nerd Font installed via Homebrew Cask (required for Starship icons).
 nerd_font_cask: font-hack-nerd-font

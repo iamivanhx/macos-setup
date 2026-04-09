@@ -27,7 +27,7 @@ class TestNpmGlobalsRole(unittest.TestCase):
             "Expected npm_global_packages to be declared as a list in group_vars/all.yml",
         )
 
-        for pkg in ("@socketsecurity/cli",):
+        for pkg in ("@socketsecurity/cli", "sfw"):
             with self.subTest(pkg=pkg):
                 self.assertIn(pkg, packages)
 
