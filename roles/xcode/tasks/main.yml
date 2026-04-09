@@ -1,4 +1,74 @@
 ---
-- name: xcode | placeholder
+- name: xcode | check if Xcode is already installed
+  ansible.builtin.stat:
+    path: /Applications/Xcode.app
+  register: xcode_app_stat
+
+- name: xcode | check Mac App Store sign-in status
+  ansible.builtin.command: mas account
+  register: mas_account_result
+  changed_when: false
+  failed_when: false
+  when: not xcode_app_stat.stat.exists
+
+- name: xcode | pause for Mac App Store sign-in (HITL)
+  ansible.builtin.pause:
+    prompt: |
+      Xcode must be installed from the Mac App Store via `mas`, but you are
+      not signed in. Open the App Store app, sign in with your Apple ID, and
+      then press ENTER to continue. Press Ctrl-C then A to abort.
+  when:
+    - not xcode_app_stat.stat.exists
+    - mas_account_result.rc is defined
+    - mas_account_result.rc != 0
+
+- name: xcode | re-check Mac App Store sign-in after pause
+  ansible.builtin.command: mas account
+  register: mas_account_recheck
+  changed_when: false
+  failed_when: false
+  when:
+    - not xcode_app_stat.stat.exists
+    - mas_account_result.rc is defined
+    - mas_account_result.rc != 0
+
+- name: xcode | fail with clear error if still not signed in
+  ansible.builtin.fail:
+    msg: >-
+      Still not signed into the Mac App Store after pause. Sign in via the
+      App Store app with your Apple ID and re-run with `--tags xcode`.
+  when:
+    - not xcode_app_stat.stat.exists
+    - mas_account_recheck.rc is defined
+    - mas_account_recheck.rc != 0
+
+- name: xcode | warn that Xcode download is ~35GB
   ansible.builtin.debug:
-    msg: "xcode role not yet implemented"
+    msg: "Downloading Xcode from the Mac App Store (~35GB). This can take a long time on slow connections."
+  when: not xcode_app_stat.stat.exists
+
+- name: xcode | install Xcode via mas
+  ansible.builtin.command: "mas install {{ xcode_app_store_id }}"
+  register: mas_install_result
+  changed_when: "'Installed' in mas_install_result.stdout or mas_install_result.rc == 0"
+  ignore_errors: true
+  when: not xcode_app_stat.stat.exists
+
+- name: xcode | re-check Xcode installation after mas install
+  ansible.builtin.stat:
+    path: /Applications/Xcode.app
+  register: xcode_app_stat_post
+
+- name: xcode | accept Xcode license
+  ansible.builtin.command: xcodebuild -license accept
+  become: true
+  register: xcode_license_result
+  changed_when: "'agreed' in xcode_license_result.stdout"
+  ignore_errors: true
+  when: xcode_app_stat_post.stat.exists
+
+- name: xcode | verify Xcode is functional
+  ansible.builtin.command: xcodebuild -version
+  register: xcodebuild_version
+  changed_when: false
+  when: xcode_app_stat_post.stat.exists
