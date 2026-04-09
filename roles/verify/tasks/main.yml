@@ -7,7 +7,7 @@
   changed_when: false
   failed_when: false
   environment:
-    PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.HOME }}/.local/share/pnpm:{{ ansible_env.PATH }}"
+    PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:{{ ansible_facts['env']['HOME'] }}/.local/bin:{{ ansible_facts['env']['HOME'] }}/.local/share/pnpm:{{ ansible_facts['env']['PATH'] }}"
 
 # ── GUI applications ─────────────────────────────────────────────────────────
 - name: verify | probe GUI applications in /Applications
@@ -30,7 +30,7 @@
   changed_when: false
   failed_when: false
   environment:
-    PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:{{ ansible_env.PATH }}"
+    PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:{{ ansible_facts['env']['PATH'] }}"
 
 - name: verify | probe git global user.email
   ansible.builtin.command: git config --global user.email
@@ -38,11 +38,11 @@
   changed_when: false
   failed_when: false
   environment:
-    PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:{{ ansible_env.PATH }}"
+    PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:{{ ansible_facts['env']['PATH'] }}"
 
 # ── Starship init line in zshrc ──────────────────────────────────────────────
 - name: verify | probe Starship init line in ~/.zshrc
-  ansible.builtin.command: "grep -F 'starship init zsh' {{ ansible_env.HOME }}/.zshrc"
+  ansible.builtin.command: "grep -F 'starship init zsh' {{ ansible_facts['env']['HOME'] }}/.zshrc"
   register: verify_starship_init
   changed_when: false
   failed_when: false

@@ -32,6 +32,34 @@ class TestAnsibleScaffolding(unittest.TestCase):
         # relevant dedicated role test to fail first, not this one.
         self.assertTrue(True)
 
+    def test_roles_use_ansible_facts_not_top_level_fact_vars(self):
+        """Top-level fact vars like `ansible_env` and `ansible_hostname` are
+        deprecated by Ansible's INJECT_FACTS_AS_VARS change (removed in
+        ansible-core 2.24). Use `ansible_facts['env']` / `ansible_facts['hostname']`
+        instead. This test enforces the forward-compat form across all roles."""
+        import re
+
+        # Match the bare top-level fact var, not `ansible_facts['env']`.
+        # Negative lookbehind avoids matching the inside of `ansible_facts['env']`.
+        patterns = [
+            (re.compile(r"(?<!facts\[')ansible_env\b"), "ansible_env"),
+            (re.compile(r"(?<!facts\[')ansible_hostname\b"), "ansible_hostname"),
+        ]
+
+        roles_dir = self.repo_root / "roles"
+        offenders = []
+        for yml in roles_dir.rglob("*.yml"):
+            text = yml.read_text(encoding="utf-8")
+            for rx, label in patterns:
+                if rx.search(text):
+                    offenders.append((str(yml.relative_to(self.repo_root)), label))
+
+        self.assertFalse(
+            offenders,
+            f"Found deprecated top-level fact vars in role files: {offenders}. "
+            "Use `ansible_facts['env']['HOME']` / `ansible_facts['hostname']` instead.",
+        )
+
     def test_playbook_lists_all_roles_with_matching_tags_for_localhost(self):
         repo_root = self.repo_root
         playbook_file = repo_root / "playbook.yml"

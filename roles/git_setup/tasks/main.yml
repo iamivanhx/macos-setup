@@ -13,13 +13,13 @@
 
 - name: git_setup | ensure ~/.ssh directory exists with mode 0700
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.ssh"
+    path: "{{ ansible_facts['env']['HOME'] }}/.ssh"
     state: directory
     mode: "0700"
 
 - name: git_setup | check whether ed25519 SSH key already exists
   ansible.builtin.stat:
-    path: "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+    path: "{{ ansible_facts['env']['HOME'] }}/.ssh/id_ed25519"
   register: ssh_key_stat
 
 - name: git_setup | prompt to skip or overwrite existing SSH key (HITL)
@@ -36,8 +36,8 @@
     path: "{{ item }}"
     state: absent
   loop:
-    - "{{ ansible_env.HOME }}/.ssh/id_ed25519"
-    - "{{ ansible_env.HOME }}/.ssh/id_ed25519.pub"
+    - "{{ ansible_facts['env']['HOME'] }}/.ssh/id_ed25519"
+    - "{{ ansible_facts['env']['HOME'] }}/.ssh/id_ed25519.pub"
   when:
     - ssh_key_stat.stat.exists
     - ssh_key_overwrite_choice is defined
@@ -52,7 +52,7 @@
       - -C
       - "{{ git_user_email }}"
       - -f
-      - "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+      - "{{ ansible_facts['env']['HOME'] }}/.ssh/id_ed25519"
       - -N
       - ""
   when: >-
@@ -64,17 +64,17 @@
 
 - name: git_setup | enforce private SSH key permissions (0600)
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+    path: "{{ ansible_facts['env']['HOME'] }}/.ssh/id_ed25519"
     mode: "0600"
 
 - name: git_setup | enforce public SSH key permissions (0644)
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.ssh/id_ed25519.pub"
+    path: "{{ ansible_facts['env']['HOME'] }}/.ssh/id_ed25519.pub"
     mode: "0644"
 
 - name: git_setup | ensure ~/.ssh/config enables Keychain + agent persistence
   ansible.builtin.blockinfile:
-    path: "{{ ansible_env.HOME }}/.ssh/config"
+    path: "{{ ansible_facts['env']['HOME'] }}/.ssh/config"
     create: true
     mode: "0600"
     marker: "# {mark} ANSIBLE MANAGED BLOCK macos-setup/git_setup"
@@ -85,7 +85,7 @@
         IdentityFile ~/.ssh/id_ed25519
 
 - name: git_setup | add SSH key to ssh-agent with macOS Keychain integration
-  ansible.builtin.command: "ssh-add --apple-use-keychain {{ ansible_env.HOME }}/.ssh/id_ed25519"
+  ansible.builtin.command: "ssh-add --apple-use-keychain {{ ansible_facts['env']['HOME'] }}/.ssh/id_ed25519"
   register: ssh_add_result
   changed_when: "'Identity added' in ssh_add_result.stderr or 'Identity added' in ssh_add_result.stdout"
   failed_when: false
@@ -125,8 +125,8 @@
 
 - name: git_setup | upload SSH public key to GitHub via gh
   ansible.builtin.command: >-
-    gh ssh-key add {{ ansible_env.HOME }}/.ssh/id_ed25519.pub
-    --title "{{ ansible_hostname | default(inventory_hostname) }}"
+    gh ssh-key add {{ ansible_facts['env']['HOME'] }}/.ssh/id_ed25519.pub
+    --title "{{ ansible_facts['hostname'] | default(inventory_hostname) }}"
   register: gh_ssh_key_add_result
   changed_when: gh_ssh_key_add_result.rc == 0
   failed_when: >-
@@ -136,7 +136,7 @@
 
 - name: git_setup | read generated SSH public key for display
   ansible.builtin.slurp:
-    src: "{{ ansible_env.HOME }}/.ssh/id_ed25519.pub"
+    src: "{{ ansible_facts['env']['HOME'] }}/.ssh/id_ed25519.pub"
   register: ssh_pubkey_slurp
 
 - name: git_setup | display public key for manual copying if needed

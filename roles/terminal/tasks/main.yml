@@ -7,20 +7,20 @@
 
 - name: terminal | ensure ~/.config directory exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.config"
+    path: "{{ ansible_facts['env']['HOME'] }}/.config"
     state: directory
     mode: "0755"
 
 - name: terminal | generate Starship gruvbox-rainbow preset (preserves user edits)
   ansible.builtin.command: >-
     starship preset gruvbox-rainbow
-    -o {{ ansible_env.HOME }}/.config/starship.toml
+    -o {{ ansible_facts['env']['HOME'] }}/.config/starship.toml
   args:
-    creates: "{{ ansible_env.HOME }}/.config/starship.toml"
+    creates: "{{ ansible_facts['env']['HOME'] }}/.config/starship.toml"
 
 - name: terminal | add Starship init line to ~/.zshrc
   ansible.builtin.lineinfile:
-    path: "{{ ansible_env.HOME }}/.zshrc"
+    path: "{{ ansible_facts['env']['HOME'] }}/.zshrc"
     line: 'eval "$(starship init zsh)"'
     create: true
     mode: "0644"

@@ -53,7 +53,7 @@
     domain: com.apple.finder
     key: NewWindowTargetPath
     type: string
-    value: "file://{{ ansible_env.HOME }}/"
+    value: "file://{{ ansible_facts['env']['HOME'] }}/"
   notify: restart Finder
 
 - name: macos_defaults | Finder | disable extension change warning
@@ -172,7 +172,7 @@
 # ── Screenshots ───────────────────────────────────────────────────────────────
 - name: macos_defaults | ensure ~/Downloads directory exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/Downloads"
+    path: "{{ ansible_facts['env']['HOME'] }}/Downloads"
     state: directory
     mode: "0755"
 
@@ -181,7 +181,7 @@
     domain: com.apple.screencapture
     key: location
     type: string
-    value: "{{ ansible_env.HOME }}/Downloads"
+    value: "{{ ansible_facts['env']['HOME'] }}/Downloads"
   notify: restart SystemUIServer
 
 - name: macos_defaults | Screenshots | disable shadow

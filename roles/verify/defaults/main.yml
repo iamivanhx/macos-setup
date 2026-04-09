@@ -42,13 +42,13 @@ verify_gui_apps:
 # Config files expected on disk (SSH key pair, starship.toml, zshrc).
 verify_config_files:
   - label: SSH private key
-    path: "{{ ansible_env.HOME }}/.ssh/id_ed25519"
+    path: "{{ ansible_facts['env']['HOME'] }}/.ssh/id_ed25519"
   - label: SSH public key
-    path: "{{ ansible_env.HOME }}/.ssh/id_ed25519.pub"
+    path: "{{ ansible_facts['env']['HOME'] }}/.ssh/id_ed25519.pub"
   - label: Starship config
-    path: "{{ ansible_env.HOME }}/.config/starship.toml"
+    path: "{{ ansible_facts['env']['HOME'] }}/.config/starship.toml"
   - label: Zsh rc file
-    path: "{{ ansible_env.HOME }}/.zshrc"
+    path: "{{ ansible_facts['env']['HOME'] }}/.zshrc"
 
 # macOS defaults spot-checks (domain/key/label).
 verify_macos_defaults:
