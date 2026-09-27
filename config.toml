@@ -1,0 +1,94 @@
+# Everything the Bootstrap sets up that does not come from Homebrew.
+# This file is also the global mise config: `bootstrap.sh` links ~/.config/mise to this repo.
+# Homebrew's Packages are in the Brewfile. `bootstrap.sh` runs both.
+
+# --- Packages ---------------------------------------------------------------
+[tools]
+node = "lts"
+"npm:sfw" = "latest"
+
+[settings]
+npm.package_manager = "pnpm"
+
+# Packages that come from uv or from their own installer. Runs on every Bootstrap.
+[tasks.bootstrap]
+run = '''
+uv python install
+[ -x "$HOME/.local/bin/claude" ] || curl -fsSL https://claude.ai/install.sh | bash
+# pi's installer puts pi in ~/.local/bin only when that is on PATH while it runs.
+[ -x "$HOME/.local/bin/pi" ] || [ -x "$HOME/.pi/agent/bin/pi" ] || curl -fsSL https://pi.dev/install.sh | PATH="$HOME/.local/bin:$PATH" sh
+'''
+
+# --- Machine values ---------------------------------------------------------
+# `bootstrap.sh` asks for the hostname and reads the public key from 1Password's SSH agent.
+[bootstrap.secrets]
+hostname = { env = "BOOTSTRAP_HOSTNAME", description = "Hostname of this Mac" }
+ssh_public_key = { env = "BOOTSTRAP_SSH_PUBLIC_KEY", description = "Public key of this Mac's SSH key" }
+
+# --- Dotfiles ---------------------------------------------------------------
+[dotfiles]
+"~/.zprofile" = "dotfiles/zsh/zprofile"
+"~/.zshrc" = "dotfiles/zsh/zshrc"
+"~/.config/starship.toml" = "dotfiles/starship/starship.toml"
+"~/.config/ghostty/config" = "dotfiles/ghostty/config"
+"~/.config/git/config" = "dotfiles/git/config"
+"~/.config/git/ignore" = "dotfiles/git/ignore"
+"~/.config/bat/config" = "dotfiles/bat/config"
+"~/.ssh/config" = "dotfiles/ssh/config"
+# Generated: the Starship file with the light palette.
+"~/.config/starship-light.toml" = { source = "dotfiles/starship/starship-light.toml.tera", mode = "template" }
+# Local files, written from Machine values.
+"~/.config/git/config.local" = { source = "dotfiles/git/config.local.tera", mode = "template" }
+"~/.config/1Password/ssh/agent.toml" = { source = "dotfiles/1password/agent.toml.tera", mode = "template" }
+
+# --- macOS settings ---------------------------------------------------------
+[bootstrap.macos.dock]
+autohide = true
+apps = [
+  "/Applications/Ghostty.app",
+  "/Applications/Google Chrome.app",
+  "/Applications/Visual Studio Code.app",
+  "/Applications/1Password.app",
+]
+
+[bootstrap.macos.finder]
+show_pathbar = true
+show_extensions_warning = false
+
+[bootstrap.macos.keyboard]
+press_and_hold = false
+key_repeat = 2
+initial_key_repeat = 15
+automatic_spelling_correction = false
+
+[bootstrap.macos.defaults]
+NSGlobalDomain = { AppleInterfaceStyleSwitchesAutomatically = true, "com.apple.swipescrolldirection" = false, AppleShowAllExtensions = true, NSAutomaticQuoteSubstitutionEnabled = false, NSAutomaticDashSubstitutionEnabled = false }
+"com.apple.finder" = { NewWindowTarget = "PfHm" }
+"com.apple.screencapture" = { location = "~/Downloads", "disable-shadow" = true }
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "BatteryShowPercentage"
+host = "current"
+value = true
+
+# Spotlight's Command-Space off, so Raycast can take it.
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.symbolichotkeys"
+key = "AppleSymbolicHotKeys"
+path = ["64", "enabled"]
+value = false
+
+# Settings that need `sudo`, and the restart that shows the rest. mise reports no drift on these.
+# Hooks run on every Bootstrap, so each line first reads the state and skips a setting that holds.
+[bootstrap.hooks]
+post-defaults = [
+  'for name in ComputerName LocalHostName HostName; do [ "$(scutil --get $name 2>/dev/null)" = "$BOOTSTRAP_HOSTNAME" ] || sudo scutil --set $name "$BOOTSTRAP_HOSTNAME"; done',
+  '/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate | grep -q enabled || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on',
+  '/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode | grep -q "is on" || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on',
+  'grep -qs "^auth.*pam_tid\.so" /etc/pam.d/sudo_local || sed "s/^#auth/auth/" /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null',
+  'sysadminctl -screenLock status 2>&1 | grep -q "is 5 seconds" || sysadminctl -screenLock 5 -password -',
+  # activateSettings loads the keyboard shortcuts, Spotlight's among them, without a logout.
+  '/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u; killall Dock Finder || true',
+]
+final = "cat ~/.config/mise/steps-by-hand.md"

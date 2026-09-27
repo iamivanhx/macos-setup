@@ -1,6 +1,5 @@
-# Per-machine Claude settings (absolute paths); see .claude/settings.local.json.example
+# Per-machine Claude settings (absolute paths)
 .claude/settings.local.json
 
-# Ansible runtime artifacts
-.ansible/
-*.retry
+# Worktrees that agents make for their branches
+.claude/worktrees/

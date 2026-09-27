@@ -1,0 +1,43 @@
+[user]
+	name = Ivan E. Hernandez T.
+	email = ivan@ivanhx.com
+	useConfigOnly = true
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+[commit]
+	gpgSign = true
+	verbose = true
+[tag]
+	gpgSign = true
+[init]
+	defaultBranch = main
+[push]
+	autoSetupRemote = true
+[fetch]
+	prune = true
+[rebase]
+	autoStash = true
+	autoSquash = true
+	updateRefs = true
+[rerere]
+	enabled = true
+[merge]
+	conflictStyle = zdiff3
+[diff]
+	algorithm = histogram
+	colorMoved = plain
+[core]
+	editor = code --wait
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta "catppuccin-latte"]
+	light = true
+	syntax-theme = Catppuccin Latte
+[delta "catppuccin-mocha"]
+	dark = true
+	syntax-theme = Catppuccin Mocha
+[include]
+	path = ~/.config/git/config.local

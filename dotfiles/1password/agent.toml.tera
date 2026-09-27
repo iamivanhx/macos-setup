@@ -1,0 +1,3 @@
+# Local file. The Bootstrap writes it from Machine values, and every run rewrites it.
+[[ssh-keys]]
+item = "SSH Key ({{ secret(name="hostname") }})"
