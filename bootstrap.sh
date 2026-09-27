@@ -20,7 +20,10 @@ main() {
 
   step "Hostname"
   if ! BOOTSTRAP_HOSTNAME="$(scutil --get HostName 2>/dev/null)"; then
-    read -r -p "Hostname for this Mac: " BOOTSTRAP_HOSTNAME
+    # Asked again until it is not empty: the templates never see an empty value.
+    while [[ -z "$BOOTSTRAP_HOSTNAME" ]]; do
+      read -r -p "Hostname for this Mac: " BOOTSTRAP_HOSTNAME
+    done
   fi
   echo "$BOOTSTRAP_HOSTNAME"
 
@@ -63,9 +66,9 @@ EOF
   fi
   ln -sfn "$REPO_DIR" "$HOME/.config/mise"
   if ! mise bootstrap --yes; then
-    cat <<'EOF'
+    cat <<EOF
 
-The Bootstrap stopped. Fix what it reports and run ./bootstrap.sh again.
+The Bootstrap stopped. Fix what it reports and run $REPO_DIR/bootstrap.sh again.
 If mise says "interrupted file recovery needs attention", run this first:
 
   mise dot recover --keep-current --yes

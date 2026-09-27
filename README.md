@@ -81,7 +81,7 @@ A break during a Bootstrap is fixed on the spot, and the Wrapper is re-run.
   ~/Projects/macos-setup/bootstrap.sh
   ```
 
-  This is the `./bootstrap.sh` that the Wrapper's failure message names. A re-run uses the checkout as it is, on the branch it is on, and does not clone again. Commit and push the fix from the checkout once the key step works: the push goes over SSH with this Mac's key.
+  This is the command that the Wrapper's failure message names, with your home folder written out. A re-run uses the checkout as it is, on the branch it is on, and does not clone again. Commit and push the fix from the checkout once the key step works: the push goes over SSH with this Mac's key.
 
 - **Before the checkout exists**, in Homebrew's installer or the clone, fix the file on GitHub with the web editor, commit it to `main`, and run the start command again.
 
