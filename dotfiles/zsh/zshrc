@@ -1,0 +1,30 @@
+HISTFILE=~/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
+setopt SHARE_HISTORY EXTENDED_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE HIST_VERIFY
+
+autoload -Uz compinit && compinit
+
+export EDITOR="code --wait"
+export FZF_DEFAULT_OPTS="--color=16"
+
+eval "$(mise activate zsh)"
+source <(fzf --zsh)
+
+# Follow the macOS appearance: Catppuccin Latte in light mode, Mocha in dark mode.
+_follow_appearance() {
+  if [[ "$(defaults read -g AppleInterfaceStyle 2>/dev/null)" == "Dark" ]]; then
+    export STARSHIP_CONFIG="$HOME/.config/starship.toml" DELTA_FEATURES="catppuccin-mocha"
+  else
+    export STARSHIP_CONFIG="$HOME/.config/starship-light.toml" DELTA_FEATURES="catppuccin-latte"
+  fi
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _follow_appearance
+
+eval "$(starship init zsh)"
+
+source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
