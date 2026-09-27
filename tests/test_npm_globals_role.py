@@ -301,3 +301,61 @@ class TestNpmGlobalsRole(unittest.TestCase):
                     msg_text,
                     "Expected preflight failure message to mention pnpm",
                 )
+
+
+class TestClaudeStatusLine(unittest.TestCase):
+    def setUp(self):
+        self.repo_root = Path(__file__).resolve().parents[1]
+        self.role_dir = self.repo_root / "roles" / "npm_globals"
+        self.tasks = yaml.safe_load(
+            (self.role_dir / "tasks" / "main.yml").read_text(encoding="utf-8")
+        )
+
+    def test_status_line_script_ships_with_role(self):
+        script = self.role_dir / "files" / "statusline-command.sh"
+        self.assertTrue(script.is_file(), f"Expected {script} to exist")
+        self.assertTrue(script.read_text(encoding="utf-8").startswith("#!/bin/bash"))
+
+    def test_status_line_script_copied_to_dot_claude(self):
+        copies = [
+            task["ansible.builtin.copy"]
+            for task in self.tasks
+            if isinstance(task, dict)
+            and isinstance(task.get("ansible.builtin.copy"), dict)
+            and task["ansible.builtin.copy"].get("src") == "statusline-command.sh"
+        ]
+        self.assertEqual(len(copies), 1, "Expected one copy task for statusline-command.sh")
+        self.assertTrue(
+            str(copies[0].get("dest", "")).endswith("/.claude/statusline-command.sh")
+        )
+        self.assertEqual(str(copies[0].get("mode")), "0755")
+
+    def test_settings_json_merges_status_line_without_clobbering(self):
+        """settings.json holds other per-user keys, so the role must read the
+        existing file and combine() statusLine into it rather than templating
+        the whole file."""
+        writes = [
+            task
+            for task in self.tasks
+            if isinstance(task, dict)
+            and isinstance(task.get("ansible.builtin.copy"), dict)
+            and str(task["ansible.builtin.copy"].get("dest", "")).endswith(
+                "/.claude/settings.json"
+            )
+        ]
+        self.assertEqual(len(writes), 1, "Expected one task writing settings.json")
+        write = writes[0]
+        content = str(write["ansible.builtin.copy"].get("content", ""))
+        self.assertIn("combine", content)
+        self.assertIn("statusLine", content)
+        self.assertIn("statusline-command.sh", str(write.get("vars", {})))
+        self.assertIn("statusLine", str(write.get("when", "")), "Write must be skipped when already set")
+
+        slurps = [
+            task
+            for task in self.tasks
+            if isinstance(task, dict)
+            and "settings.json" in str(task.get("ansible.builtin.slurp", ""))
+        ]
+        self.assertTrue(slurps, "Expected the existing settings.json to be read via slurp")
+        self.assertLess(self.tasks.index(slurps[0]), self.tasks.index(write))

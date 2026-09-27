@@ -59,6 +59,7 @@ fresh machine (most of which is Xcode and GUI app downloads).
 | **CLI** | pnpm | Standalone installer (`https://get.pnpm.io/install.sh`) |
 | **CLI** | Node LTS | `pnpm env use --global lts` |
 | **CLI** | claude (Claude Code) | Official installer (`https://claude.ai/install.sh`) |
+| **CLI** | Claude Code status line (`~/.claude/statusline-command.sh` + `statusLine` in `~/.claude/settings.json`) | `copy` + JSON merge |
 | **CLI** | socket (`@socketsecurity/cli`) | `pnpm add -g` |
 | **CLI** | sfw (Socket Firewall) | `pnpm add -g` |
 | **GUI** | 1Password, Google Chrome, Discord, Obsidian, Visual Studio Code, iTerm2 | Homebrew cask |
@@ -164,6 +165,10 @@ Re-runs are safe and idempotent:
   re-runs.
 - **zshrc Starship init line** — `lineinfile` uses exact-match, no
   duplication.
+- **Claude Code status line** — the script is overwritten from
+  `roles/npm_globals/files/statusline-command.sh` on each run (edit it
+  there, not in `~/.claude`). `settings.json` is only rewritten when its
+  `statusLine` key differs; all other keys are preserved.
 - **macOS defaults** — `community.general.osx_defaults` compares each key
   before writing; handlers (`killall Finder/Dock/SystemUIServer`) only
   fire when something actually changed.
@@ -254,7 +259,7 @@ the role's tag.
 │   ├── cask_apps/         # GUI apps
 │   ├── xcode/             # mas + Xcode + license accept
 │   ├── languages/         # uv, pnpm, Node LTS
-│   ├── npm_globals/       # Claude Code + pnpm globals
+│   ├── npm_globals/       # Claude Code + status line + pnpm globals
 │   ├── git_setup/         # git identity, SSH key, gh auth, ssh-key add
 │   ├── terminal/          # Nerd Font, Starship preset, zshrc init
 │   ├── macos_defaults/    # ~25 defaults + Finder/Dock/SystemUIServer

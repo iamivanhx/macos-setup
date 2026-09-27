@@ -20,6 +20,43 @@
   args:
     creates: "{{ ansible_facts['env']['HOME'] }}/.local/bin/claude"
 
+- name: npm_globals | ensure ~/.claude directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_facts['env']['HOME'] }}/.claude"
+    state: directory
+    mode: "0755"
+
+- name: npm_globals | install Claude Code status line script
+  ansible.builtin.copy:
+    src: statusline-command.sh
+    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/statusline-command.sh"
+    mode: "0755"
+
+- name: npm_globals | probe Claude Code settings.json
+  ansible.builtin.stat:
+    path: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.json"
+  register: claude_settings_stat
+
+- name: npm_globals | read existing Claude Code settings.json
+  ansible.builtin.slurp:
+    src: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.json"
+  register: claude_settings_raw
+  when: claude_settings_stat.stat.exists
+
+- name: npm_globals | set statusLine in Claude Code settings.json (preserves other keys)
+  vars:
+    claude_settings_current: >-
+      {{ (claude_settings_raw.content | b64decode | from_json)
+         if claude_settings_stat.stat.exists else {} }}
+    claude_status_line:
+      type: command
+      command: "bash {{ ansible_facts['env']['HOME'] }}/.claude/statusline-command.sh"
+  ansible.builtin.copy:
+    dest: "{{ ansible_facts['env']['HOME'] }}/.claude/settings.json"
+    content: "{{ claude_settings_current | combine({'statusLine': claude_status_line}) | to_nice_json(indent=2) }}\n"
+    mode: "0644"
+  when: claude_settings_current.statusLine | default({}) != claude_status_line
+
 - name: npm_globals | list currently installed pnpm global packages
   ansible.builtin.command: "{{ ansible_facts['env']['HOME'] }}/.local/share/pnpm/pnpm list -g --depth=0 --parseable"
   register: pnpm_global_list
