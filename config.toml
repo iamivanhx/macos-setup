@@ -88,6 +88,7 @@ post-defaults = [
   '/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode | grep -q "is on" || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on',
   'grep -qs "^auth.*pam_tid\.so" /etc/pam.d/sudo_local || sed "s/^#auth/auth/" /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null',
   'sysadminctl -screenLock status 2>&1 | grep -q "is 5 seconds" || sysadminctl -screenLock 5 -password -',
-  'killall Dock Finder || true',
+  # activateSettings loads the keyboard shortcuts, Spotlight's among them, without a logout.
+  '/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u; killall Dock Finder || true',
 ]
 final = "cat ~/.config/mise/steps-by-hand.md"
