@@ -1,7 +1,0 @@
----
-- name: cask_apps | install GUI applications via Homebrew Cask
-  community.general.homebrew_cask:
-    name: "{{ item }}"
-    state: present
-    accept_external_apps: true
-  loop: "{{ homebrew_casks }}"
