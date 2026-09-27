@@ -66,9 +66,9 @@ EOF
   fi
   ln -sfn "$REPO_DIR" "$HOME/.config/mise"
   if ! mise bootstrap --yes; then
-    cat <<'EOF'
+    cat <<EOF
 
-The Bootstrap stopped. Fix what it reports and run ./bootstrap.sh again.
+The Bootstrap stopped. Fix what it reports and run $REPO_DIR/bootstrap.sh again.
 If mise says "interrupted file recovery needs attention", run this first:
 
   mise dot recover --keep-current --yes
