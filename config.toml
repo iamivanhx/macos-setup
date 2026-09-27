@@ -82,7 +82,7 @@ value = false
 # Hooks run on every Bootstrap, so each line first reads the state and skips a setting that holds.
 [bootstrap.hooks]
 post-defaults = [
-  '[ "$(scutil --get HostName 2>/dev/null)" = "$BOOTSTRAP_HOSTNAME" ] || for name in ComputerName LocalHostName HostName; do sudo scutil --set $name "$BOOTSTRAP_HOSTNAME"; done',
+  'for name in ComputerName LocalHostName HostName; do [ "$(scutil --get $name 2>/dev/null)" = "$BOOTSTRAP_HOSTNAME" ] || sudo scutil --set $name "$BOOTSTRAP_HOSTNAME"; done',
   '/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate | grep -q enabled || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on',
   '/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode | grep -q "is on" || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on',
   '[ -f /etc/pam.d/sudo_local ] || sed "s/^#auth/auth/" /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null',
