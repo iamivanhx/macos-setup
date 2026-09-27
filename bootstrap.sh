@@ -20,7 +20,10 @@ main() {
 
   step "Hostname"
   if ! BOOTSTRAP_HOSTNAME="$(scutil --get HostName 2>/dev/null)"; then
-    read -r -p "Hostname for this Mac: " BOOTSTRAP_HOSTNAME
+    # Asked again until it is not empty: the templates never see an empty value.
+    while [[ -z "$BOOTSTRAP_HOSTNAME" ]]; do
+      read -r -p "Hostname for this Mac: " BOOTSTRAP_HOSTNAME
+    done
   fi
   echo "$BOOTSTRAP_HOSTNAME"
 
