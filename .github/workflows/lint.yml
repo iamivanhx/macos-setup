@@ -1,0 +1,11 @@
+name: Lint
+
+on: push
+
+jobs:
+  lint:
+    # shellcheck comes with this image. It stays out of the Brewfile.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: ./lint.sh
