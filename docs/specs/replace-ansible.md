@@ -132,7 +132,7 @@ Where a criterion says "in a Trial", it is observed in a clone of the golden gue
 ### macOS settings
 
 - [ ] AC-39: After a first run, these 18 settings read back with `defaults read` (with `-currentHost` for the battery percentage): global `AppleInterfaceStyleSwitchesAutomatically` true, `com.apple.swipescrolldirection` false, `AppleShowAllExtensions` true, `ApplePressAndHoldEnabled` false, `KeyRepeat` 2, `InitialKeyRepeat` 15, `NSAutomaticSpellingCorrectionEnabled` false, `NSAutomaticQuoteSubstitutionEnabled` false, `NSAutomaticDashSubstitutionEnabled` false; `com.apple.dock` `autohide` true and `persistent-apps` as Ghostty, Google Chrome, Visual Studio Code, 1Password in that order; `com.apple.finder` `FXEnableExtensionChangeWarning` false, `ShowPathbar` true, `NewWindowTarget` `PfHm`; `com.apple.symbolichotkeys` hotkey 64 `enabled` false; `com.apple.screencapture` `location` the Downloads folder and `disable-shadow` true; per-host `com.apple.controlcenter` `BatteryShowPercentage` true
-- [ ] AC-40: In a Trial with a window, after a first run and with no step by hand, System Settings shows Appearance as Auto and "Show Spotlight search" as unticked, and the Dock shows Ghostty, Google Chrome, Visual Studio Code and 1Password in that order and none of Apple's default apps
+- [ ] AC-40: In a Trial with a window, after a first run and with no step by hand, System Settings shows "Show Spotlight search" as unticked, and the Dock shows Ghostty, Google Chrome, Visual Studio Code and 1Password in that order and none of Apple's default apps. After the one logout of the Steps by hand, System Settings shows Appearance as Auto
 - [ ] AC-41: After a first run, `socketfilterfw --getglobalstate` reports the firewall enabled, `socketfilterfw --getstealthmode` reports stealth mode on, `sysadminctl -screenLock status` reports 5 seconds, and `/etc/pam.d/sudo_local` holds an active `pam_tid.so` line
 - [ ] AC-42: After a first run, `scutil --get ComputerName`, `scutil --get LocalHostName` and `scutil --get HostName` each print `<hostname>`
 - [ ] AC-43: In a Trial with a window, a screenshot of a window taken after a first run lands in `~/Downloads` and has no window shadow
@@ -357,6 +357,8 @@ The two Wrapper seams are one interface with two adapters at each override: GitH
 - **The sleep timers, the display settings, text size, tap to click and the Dock's icon size.**
 
 ## Further Notes
+
+**Amended after the first Trial (2026-09-27).** AC-40 as first written had Appearance show Auto with no step by hand. On macOS 27, `AppleInterfaceStyleSwitchesAutomatically` written with `defaults` takes effect only at the next login: the first Trial showed Light until a logout, and `activateSettings -u` did not change that. The owner chose to have Appearance checked after the logout that the Steps by hand already ask for.
 
 **Inferred by this spec.** No ticket decided these. Each is open to an amendment.
 
