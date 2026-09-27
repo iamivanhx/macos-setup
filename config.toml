@@ -85,7 +85,7 @@ post-defaults = [
   'for name in ComputerName LocalHostName HostName; do [ "$(scutil --get $name 2>/dev/null)" = "$BOOTSTRAP_HOSTNAME" ] || sudo scutil --set $name "$BOOTSTRAP_HOSTNAME"; done',
   '/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate | grep -q enabled || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on',
   '/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode | grep -q "is on" || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on',
-  '[ -f /etc/pam.d/sudo_local ] || sed "s/^#auth/auth/" /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null',
+  'grep -qs "^auth.*pam_tid\.so" /etc/pam.d/sudo_local || sed "s/^#auth/auth/" /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null',
   'sysadminctl -screenLock status 2>&1 | grep -q "is 5 seconds" || sysadminctl -screenLock 5 -password -',
   'killall Dock Finder || true',
 ]
