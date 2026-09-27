@@ -1,313 +1,110 @@
 # macos-setup
 
-Automated macOS developer machine setup. One command bootstraps a fresh Mac
-with Homebrew, CLI tools, GUI applications, language toolchains, global CLIs,
-Git identity + SSH key, a themed terminal, and sensible macOS defaults.
+This repo sets up a Fresh Mac: its Packages, its Dotfiles and its macOS settings. One command starts a Bootstrap. A re-run is safe and quick, and it is how you check and repair a Mac.
 
-Everything is driven by Ansible roles; everything is idempotent.
+It is written for the owner's Macs, on Apple Silicon with macOS 27. Every Mac gets the same setup.
 
-## Overview
+## How it works
 
-Run one command on a freshly installed macOS machine and end up with a fully
-configured developer environment: Xcode, Homebrew, formulae, casks, pnpm +
-Node LTS, uv, Claude Code, Socket CLI, GitHub Copilot CLI, Starship prompt
-with Nerd Font, git identity with an ed25519 SSH key auto-uploaded to
-GitHub, and ~25 developer-friendly macOS preferences.
+The Wrapper, `bootstrap.sh`, runs two standard tools in order:
 
-The system is a bash bootstrap script that installs Ansible and clones this
-repo, then hands off to an Ansible playbook split into focused roles. Each
-role can be re-run independently via `--tags`.
+- **Homebrew** installs the Packages listed in `Brewfile`.
+- **mise bootstrap** does everything else from `config.toml`: the Dotfiles, the Local files, the macOS settings, Node, `sfw`, Python, Claude Code and pi.
 
-## Prerequisites
+| Path | What it holds |
+|---|---|
+| `bootstrap.sh` | The Wrapper |
+| `Brewfile` | The Packages that come from Homebrew |
+| `config.toml` | Everything else. On a Mac it is also the global mise config |
+| `steps-by-hand.md` | The Steps by hand, printed at the end of every run that succeeds |
+| `dotfiles/` | The Dotfiles, one directory per app, each file under its own name |
+| `docs/research/` | The research notes behind the decisions |
 
-- **Apple Silicon Mac** (M1/M2/M3/M4). Intel is untested.
-- **macOS Tahoe (26.x)** or later. Earlier versions will mostly work but some
-  macOS defaults keys differ (notably the battery percentage toggle).
-- **Signed into the Mac App Store** with your Apple ID before you run the
-  script — the `xcode` role installs Xcode via `mas` and will pause for you
-  to sign in if you are not.
-- **Admin (sudo) access** on the machine.
-- A **GitHub account** (optional but recommended — the `git_setup` role
-  uploads your new SSH key via `gh ssh-key add`).
+On a Mac the repo is a checkout at `~/Projects/macos-setup`, and `~/.config/mise` is a link to it. The Dotfiles in the home directory are links into the checkout, so an edit to one shows in `git status` there.
 
-## Quick Start
+The hostname and this Mac's SSH public key are Machine values: a run asks for them or looks them up, and never stores them in this repo. The Bootstrap writes them into two Local files, `~/.config/git/config.local` and `~/.config/1Password/ssh/agent.toml`. Your own additions to the shell go in `~/.zshrc.local`, which the Bootstrap never touches.
 
-Run this on the fresh Mac:
+## Start a Bootstrap
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/iamivanhx/macos-setup/main/bootstrap.sh | bash
+In Terminal on a Fresh Mac:
+
+```sh
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/iamivanhx/macos-setup/main/bootstrap.sh)"
 ```
 
-The script will prompt for:
+A first run takes about 8 minutes and holds the Mac awake while it runs. It asks five times:
 
-1. **Hostname** — the computer name (letters, digits, hyphens).
-2. **Git user name** — used for `git config --global user.name`.
-3. **Git email** — used for `git config --global user.email`.
+1. The hostname, at `Hostname for this Mac:`. A re-run reads it back and does not ask.
+2. Your password, at Homebrew's installer.
+3. Return, at Homebrew's installer, to go on.
+4. Your password at `sudo`, during `mise bootstrap`, for the Mac's names, the firewall, stealth mode and Touch ID for `sudo`.
+5. Your password at the screen-lock prompt, which sets the lock delay.
 
-Then it will ask for your sudo password once, install Xcode Command Line
-Tools, install Homebrew, install Ansible, clone this repo to
-`~/macos-setup`, and run the full playbook. Expect ~30–60 minutes on a
-fresh machine (most of which is Xcode and GUI app downloads).
+**The Command Line Tools popup.** Homebrew's installer brings the Command Line Tools, and most of the time no window shows. If a popup asks to install the command line developer tools, click **Install** (not Get Xcode), then **Agree**, and **Done** once it has finished. Then press any key in Terminal, where Homebrew's installer waits for you.
 
-## What Gets Installed
+**The pause at the key check.** After `brew bundle`, the Wrapper looks in 1Password's SSH agent for a key titled `SSH Key (<hostname>)`. On a Fresh Mac it is not there yet, so the Wrapper pauses, names the four possible causes and waits for Return. Open 1Password, which `brew bundle` has just installed, sign in, turn on the SSH agent, and make an SSH key of type ED25519 with that title. Then press Return. The Wrapper looks again after each Return and goes on once the key is there. Ctrl-C is safe during the pause: a re-run picks up from there.
 
-| Category | Tool | Installed via |
-|---|---|---|
-| **CLI** | git, gh, vim, mas, starship, curl, wget, jq, tree, ripgrep, fd, bat, htop, tldr | Homebrew formula |
-| **CLI** | uv (Python) | Homebrew formula |
-| **CLI** | copilot (GitHub Copilot CLI) | Homebrew formula `copilot-cli` |
-| **CLI** | pnpm | Standalone installer (`https://get.pnpm.io/install.sh`) |
-| **CLI** | Node LTS | `pnpm env use --global lts` |
-| **CLI** | claude (Claude Code) | Official installer (`https://claude.ai/install.sh`) |
-| **CLI** | Claude Code status line (`~/.claude/statusline-command.sh` + `statusLine` in `~/.claude/settings.json`) | `copy` + JSON merge |
-| **CLI** | socket (`@socketsecurity/cli`) | `pnpm add -g` |
-| **CLI** | sfw (Socket Firewall) | `pnpm add -g` |
-| **GUI** | 1Password, Google Chrome, Discord, Obsidian, Visual Studio Code, iTerm2 | Homebrew cask |
-| **GUI** | Xcode | Mac App Store via `mas` |
-| **Font** | Hack Nerd Font | Homebrew cask (`font-hack-nerd-font`) |
-| **Shell** | Starship prompt, gruvbox-rainbow preset, init line in `~/.zshrc` | `starship preset` + `lineinfile` |
-| **Git** | Global user.name, user.email, ed25519 SSH key, ssh-agent (Keychain), `gh ssh-key add` | `community.general.git_config` + `ssh-keygen` + `gh` |
-| **macOS** | ~25 developer defaults (Finder, Dock, Keyboard, Screenshots, Xcode, Time Machine) | `community.general.osx_defaults` |
+At the end of the run the Wrapper prints the Steps by hand from [`steps-by-hand.md`](steps-by-hand.md). Every run that succeeds prints them, whether or not you have done them.
 
-### Post-install manual steps
+## Read a Mac's state
 
-- **Battery percentage in the menu bar**: System Settings → Control Center →
-  Battery → Show Percentage. This cannot be scripted on macOS Ventura+ —
-  the value lives inside an opaque binary blob under
-  `~/Library/Preferences/ByHost/com.apple.controlcenter.bentoboxes.*.plist`
-  and `defaults write com.apple.controlcenter BatteryShowPercentage` is
-  silently ignored.
-- **Log out / reboot** for some keyboard and input settings to apply to
-  already-running apps.
+The tools' own reports tell a Mac's state. This repo has no check script.
 
-## Customization
+- **A re-run of the Wrapper**, `~/Projects/macos-setup/bootstrap.sh`. It takes about a second, asks nothing, and sets back what drifted. It asks for the `sudo` password only to set back a setting that needs it.
+- **`mise bootstrap status --missing`**. It exits 1 when a Dotfile, a macOS setting or a tool of `config.toml` is out of step. Run by hand, it needs the two Machine values in the environment, `BOOTSTRAP_HOSTNAME` and `BOOTSTRAP_SSH_PUBLIC_KEY`. Without them it reports the two Local files as out of step. The four settings that need `sudo` are not in its report.
 
-Tool lists live in `group_vars/all.yml`. Add or remove entries to tailor
-the setup to your preferences. Example:
+  ```sh
+  cd ~
+  BOOTSTRAP_HOSTNAME="$(scutil --get HostName)" \
+  BOOTSTRAP_SSH_PUBLIC_KEY="$(git config --global --includes user.signingKey)" \
+  mise bootstrap status --missing
+  ```
 
-```yaml
-homebrew_formulae:
-  - git
-  - gh
-  - starship
-  - jq
-  - my-extra-tool     # ← added
+- **`brew bundle check --file ~/Projects/macos-setup/Brewfile`**. It reports whether every Package of the `Brewfile` is installed.
 
-homebrew_casks:
-  - 1password
-  - google-chrome
-  - my-extra-app      # ← added
+### Checks on a real Mac
 
-npm_global_packages:
-  - "@socketsecurity/cli"
-  - sfw
-  - "@my-org/my-cli"  # ← added
-```
+No tool reports these. Check them after the first Bootstrap on a real Mac:
 
-Other useful knobs in the same file:
+- [ ] The menu bar shows the battery percentage, after one logout.
+- [ ] `sudo` in a new terminal accepts Touch ID.
+- [ ] The key step with 1Password: with 1Password unlocked and its SSH agent on, the key check finds `SSH Key (<hostname>)` with no pause, and `ssh -T git@github.com` greets your GitHub account.
+- [ ] A push over SSH: `git push` from the checkout succeeds, and GitHub shows the pushed commit as verified.
 
-- `nerd_font_cask` — the Homebrew Cask name for your preferred Nerd Font
-- `pnpm_install_url` — pnpm standalone installer URL
-- `claude_code_install_url` — Claude Code official installer URL
-- `xcode_app_store_id` — Mac App Store ID for Xcode (rarely needs changing)
+## Fix a break
 
-Role-specific knobs live in `roles/<role>/defaults/main.yml`. For example,
-the verify role's check lists are in `roles/verify/defaults/main.yml`.
+A break during a Bootstrap is fixed on the spot, and the Wrapper is re-run.
 
-## Running Specific Roles
+- **Once the checkout exists**, edit the file in `~/Projects/macos-setup` and re-run the Wrapper from there:
 
-Each role is tagged with its own name. Run just one role:
+  ```sh
+  ~/Projects/macos-setup/bootstrap.sh
+  ```
 
-```bash
-# Re-apply macOS system defaults only
-ansible-playbook playbook.yml --tags macos_defaults
+  This is the `./bootstrap.sh` that the Wrapper's failure message names. A re-run uses the checkout as it is, on the branch it is on, and does not clone again. Commit and push the fix from the checkout once the key step works: the push goes over SSH with this Mac's key.
 
-# Re-run homebrew formulae install
-ansible-playbook playbook.yml --tags homebrew
+- **Before the checkout exists**, in Homebrew's installer or the clone, fix the file on GitHub with the web editor, commit it to `main`, and run the start command again.
 
-# Re-run the git identity + SSH key + gh auth flow
-ansible-playbook playbook.yml --tags git_setup
+- **An interrupted run** leaves mise blocked. If mise says `interrupted file recovery needs attention`, run this, then re-run the Wrapper:
 
-# Run the read-only diagnostic report
-ansible-playbook playbook.yml --tags verify
+  ```sh
+  mise dot recover --keep-current --yes
+  ```
 
-# Re-install pnpm globals
-ansible-playbook playbook.yml --tags npm_globals
-```
+- **A file already where a Dotfile goes** stops the Bootstrap: mise lists the path and leaves the file as it is. Move the file away and re-run. The Wrapper stops the same way when `~/.config/mise` exists and is not a link.
 
-Combine tags with a comma:
+## Change the setup
 
-```bash
-ansible-playbook playbook.yml --tags homebrew,cask_apps,terminal
-```
+Each change is one edit in one place, then a re-run:
 
-The roles are: `homebrew`, `cask_apps`, `xcode`, `languages`, `npm_globals`,
-`git_setup`, `terminal`, `macos_defaults`, `verify`.
+- A Package from Homebrew is one line of `Brewfile`.
+- Any other Package, a Dotfile or a macOS setting is an entry in `config.toml`. A Dotfile's file goes under `dotfiles/`.
+- A Step by hand is one line of `steps-by-hand.md`.
 
-## Re-running
+## The Ansible version
 
-Re-runs are safe and idempotent:
+The Ansible version of this repo lives under the tag `ansible-final`.
 
-- **Homebrew formulae / casks / Mac App Store apps** — already-installed
-  packages are skipped.
-- **pnpm globals** — a pre-check (`pnpm list -g --parseable`) gates the
-  install loop; `ignore_errors: true` means a single package failure
-  doesn't block the rest.
-- **Git identity** — `community.general.git_config` compares before
-  writing.
-- **SSH key** — if `~/.ssh/id_ed25519` already exists, the role pauses and
-  asks whether to **skip** (default, press ENTER) or **overwrite** (type
-  `overwrite`). Existing keys are never silently clobbered. `gh ssh-key
-  add` tolerates "already exists" responses so a previously-uploaded key
-  is a no-op.
-- **Starship config** — `~/.config/starship.toml` is generated with a
-  `creates:` guard, so if you customize it by hand your edits survive
-  re-runs.
-- **zshrc Starship init line** — `lineinfile` uses exact-match, no
-  duplication.
-- **Claude Code status line** — the script is overwritten from
-  `roles/npm_globals/files/statusline-command.sh` on each run (edit it
-  there, not in `~/.claude`). `settings.json` is only rewritten when its
-  `statusLine` key differs; all other keys are preserved.
-- **macOS defaults** — `community.general.osx_defaults` compares each key
-  before writing; handlers (`killall Finder/Dock/SystemUIServer`) only
-  fire when something actually changed.
+## License
 
-To see what's currently present vs missing without changing anything, run
-the `verify` role:
-
-```bash
-ansible-playbook playbook.yml --tags verify
-```
-
-## Troubleshooting
-
-### Not signed into the App Store (Xcode fails)
-
-The `xcode` role uses `mas` to install Xcode from the Mac App Store. If you
-are not signed in, the role pauses and asks you to sign in via the App
-Store app, then press ENTER to continue. If you skip the pause, the role
-fails loudly with a clear message telling you to sign in and re-run with
-`--tags xcode`.
-
-### pnpm / Node not on PATH
-
-pnpm installs itself at `~/.local/share/pnpm/pnpm` and does **not**
-automatically add that directory to your shell PATH. The playbook uses
-absolute paths internally so roles always find pnpm, but after the
-playbook finishes you will need to open a fresh terminal or source the
-pnpm shell init that the pnpm installer wrote to `~/.zshrc`. If `pnpm`
-is not on PATH in a new terminal, run `pnpm setup` once and open a new
-terminal.
-
-### macOS defaults not taking effect (need logout)
-
-Some macOS preferences — especially keyboard, press-and-hold, and spelling
-substitution — only apply to apps started **after** the default was
-written. Log out and back in (or restart) to be sure every running app
-picks up the new values. Finder/Dock/SystemUIServer are automatically
-restarted by role handlers, so those categories take effect immediately.
-
-### Ansible Galaxy collection errors
-
-If `ansible-galaxy collection install -r requirements.yml` fails, it is
-almost always a transient network issue. Re-run `bootstrap.sh` or just
-that line. The collections resolve from Ansible Galaxy's public index,
-which occasionally rate-limits or has regional outages.
-
-### gh is not authenticated
-
-The `git_setup` role runs `gh auth status` first. If `gh` is not
-authenticated, the role pauses and asks you to open another terminal and
-run `gh auth login` (GitHub.com → HTTPS → authenticate via web browser).
-Once `gh auth status` reports success in the other terminal, press ENTER
-in the playbook terminal to continue. If you skip the pause, the role
-fails clearly and tells you to re-run with `--tags git_setup` after
-authenticating.
-
-### Homebrew Cask name changed upstream
-
-macOS Cask names change occasionally (fonts especially). If a cask fails
-to install because the name no longer exists, update the relevant entry
-in `group_vars/all.yml` — for fonts, `nerd_font_cask` — and re-run with
-the role's tag.
-
-## Project Structure
-
-```
-.
-├── README.md              # you are here
-├── LICENSE                # MIT
-├── bootstrap.sh           # curl | bash entry point; installs Xcode CLT,
-│                          # Homebrew, Ansible, clones this repo, runs
-│                          # the playbook with extra-vars
-├── ansible.cfg            # Ansible defaults (local connection, inventory
-│                          # path, interpreter_python=auto_silent)
-├── playbook.yml           # Top-level play; lists every role with its
-│                          # matching tag
-├── requirements.yml       # Ansible Galaxy collection dependencies
-│                          # (community.general)
-├── inventory/
-│   └── hosts.yml          # localhost with ansible_connection=local
-├── group_vars/
-│   └── all.yml            # Tool lists: homebrew_formulae,
-│                          # homebrew_casks, npm_global_packages,
-│                          # nerd_font_cask, xcode_app_store_id,
-│                          # pnpm_install_url, claude_code_install_url
-├── roles/
-│   ├── homebrew/          # brew + formulae
-│   ├── cask_apps/         # GUI apps
-│   ├── xcode/             # mas + Xcode + license accept
-│   ├── languages/         # uv, pnpm, Node LTS
-│   ├── npm_globals/       # Claude Code + status line + pnpm globals
-│   ├── git_setup/         # git identity, SSH key, gh auth, ssh-key add
-│   ├── terminal/          # Nerd Font, Starship preset, zshrc init
-│   ├── macos_defaults/    # ~25 defaults + Finder/Dock/SystemUIServer
-│   │                      # restart handlers
-│   └── verify/            # read-only diagnostic report
-└── tests/                 # Python unittest suite that validates the
-                           # structure of every role, its tasks, and
-                           # the bootstrap script
-```
-
-## Adding New Tools
-
-### Adding a new Homebrew formula
-
-1. Edit `group_vars/all.yml` and append the formula name to `homebrew_formulae`.
-2. Run `ansible-playbook playbook.yml --tags homebrew` to install it.
-3. (Optional) Add the binary name to `roles/verify/defaults/main.yml`
-   under `verify_cli_tools` so the verify role confirms it installed.
-
-### Adding a new Homebrew cask
-
-1. Edit `group_vars/all.yml` and append the cask name to `homebrew_casks`.
-2. Run `ansible-playbook playbook.yml --tags cask_apps`.
-3. (Optional) Add the `.app` name to
-   `roles/verify/defaults/main.yml` → `verify_gui_apps`.
-
-### Adding a new pnpm global
-
-1. Edit `group_vars/all.yml` and append the package name to
-   `npm_global_packages`.
-2. Run `ansible-playbook playbook.yml --tags npm_globals`.
-3. (Optional) Add the installed binary name to
-   `roles/verify/defaults/main.yml` → `verify_cli_tools`.
-
-### Adding a new macOS default
-
-1. Edit `roles/macos_defaults/tasks/main.yml` and add a new task using
-   `community.general.osx_defaults`. Model it after an existing task in
-   the same category.
-2. If the setting requires a service restart, add `notify: restart Finder`
-   (or Dock, or SystemUIServer) to the task.
-3. Run `ansible-playbook playbook.yml --tags macos_defaults`.
-
-### Adding a new role
-
-1. Create `roles/<new_role>/tasks/main.yml` with at least one task.
-2. Add `roles/<new_role>/defaults/main.yml` if the role has configurable
-   data.
-3. Add the role to `playbook.yml` with a matching `tags:` entry.
-4. Add a test file under `tests/test_<new_role>_role.py` that asserts the
-   structural contract of the role's tasks.
+MIT. See [`LICENSE`](LICENSE).
