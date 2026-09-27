@@ -15,7 +15,8 @@ npm.package_manager = "pnpm"
 run = '''
 uv python install
 [ -x "$HOME/.local/bin/claude" ] || curl -fsSL https://claude.ai/install.sh | bash
-[ -x "$HOME/.local/bin/pi" ] || [ -x "$HOME/.pi/agent/bin/pi" ] || curl -fsSL https://pi.dev/install.sh | sh
+# pi's installer puts pi in ~/.local/bin only when that is on PATH while it runs.
+[ -x "$HOME/.local/bin/pi" ] || [ -x "$HOME/.pi/agent/bin/pi" ] || curl -fsSL https://pi.dev/install.sh | PATH="$HOME/.local/bin:$PATH" sh
 '''
 
 # --- Machine values ---------------------------------------------------------
