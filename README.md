@@ -24,7 +24,7 @@ The Wrapper, `bootstrap.sh`, runs two standard tools in order:
 
 On a Mac the repo is a checkout at `~/Projects/macos-setup`, and `~/.config/mise` is a link to it. The Dotfiles in the home directory are links into the checkout, so an edit to one shows in `git status` there.
 
-The hostname and this Mac's SSH public key are Machine values: a run asks for them or looks them up, and never stores them in this repo. The Bootstrap writes them into two Local files, `~/.config/git/config.local` and `~/.config/1Password/ssh/agent.toml`. Your own additions to the shell go in `~/.zshrc.local`, which the Bootstrap never touches.
+The hostname and this Mac's SSH public key are Machine values: a run asks for them or looks them up, and never stores them in this repo. The Bootstrap writes them into two Local files, `~/.config/git/config.local` and `~/.config/1Password/ssh/agent.toml`. Two Local files are yours to write, and the Bootstrap never creates or touches them. Your own additions to the shell go in `~/.zshrc.local`. This Mac's own Ghostty values, such as a different `font-size` on a laptop, go in `~/.config/ghostty/config.local`. Ghostty reads it after the Ghostty Dotfile, so its values win, and a Mac without one runs the Ghostty Dotfile as it is.
 
 ## Start a Bootstrap
 
