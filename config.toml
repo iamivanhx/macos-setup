@@ -30,7 +30,7 @@ ssh_public_key = { env = "BOOTSTRAP_SSH_PUBLIC_KEY", description = "Public key o
 "~/.zprofile" = "dotfiles/zsh/zprofile"
 "~/.zshrc" = "dotfiles/zsh/zshrc"
 "~/.config/starship.toml" = "dotfiles/starship/starship.toml"
-"~/.config/ghostty/config" = "dotfiles/ghostty/config"
+"~/.config/ghostty/config.ghostty" = "dotfiles/ghostty/config.ghostty"
 "~/.config/git/config" = "dotfiles/git/config"
 "~/.config/git/ignore" = "dotfiles/git/ignore"
 "~/.config/bat/config" = "dotfiles/bat/config"
@@ -79,9 +79,14 @@ key = "AppleSymbolicHotKeys"
 path = ["64", "enabled"]
 value = false
 
-# Settings that need `sudo`, and the restart that shows the rest. mise reports no drift on these.
-# Hooks run on every Bootstrap, so each line first reads the state and skips a setting that holds.
+# Hooks run on every Bootstrap, so each line first reads the state and acts only when needed.
 [bootstrap.hooks]
+# Ghostty reads a config file in Application Support after the Dotfile, and Open Configuration opens it.
+# An empty one is removed. A non-empty one is left as it is, and the run names it.
+post-dotfiles = [
+  'for name in config.ghostty config; do f="$HOME/Library/Application Support/com.mitchellh.ghostty/$name"; if [ -s "$f" ]; then echo "$f overrides the Ghostty Dotfile. Move its settings into ~/.config/ghostty/config.ghostty, then delete it."; elif [ -f "$f" ]; then rm "$f"; fi; done',
+]
+# Settings that need `sudo`, and the restart that shows the rest. mise reports no drift on these.
 post-defaults = [
   'for name in ComputerName LocalHostName HostName; do [ "$(scutil --get $name 2>/dev/null)" = "$BOOTSTRAP_HOSTNAME" ] || sudo scutil --set $name "$BOOTSTRAP_HOSTNAME"; done',
   '/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate | grep -q enabled || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on',
