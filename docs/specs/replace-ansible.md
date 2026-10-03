@@ -23,9 +23,7 @@ The owner starts a Bootstrap on a Fresh Mac with one command. It fetches the Wra
 
 The Wrapper asks for the hostname, pauses once until this Mac's SSH key is in 1Password's SSH agent, and holds the Mac awake. At the end the Bootstrap prints the Steps by hand. A first run on a Fresh Mac takes about 8 minutes and asks five times. A re-run takes about a second, asks nothing, and sets back what drifted.
 
-Every Mac gets the same 32 Packages, the same Dotfiles and the same 21 macOS settings. Machine values, the hostname and the SSH key, are asked or looked up and never stored in this repo. A new Package, Dotfile, macOS setting or Step by hand is one edit in one place.
-
-Every Mac gets the same 26 Packages, the same Dotfiles and the same 22 macOS settings. Machine values, the hostname and the SSH key, are asked or looked up and never stored in this repo. A new Package, Dotfile, macOS setting or Step by hand is one edit in one place.
+Every Mac gets the same 32 Packages, the same Dotfiles and the same 22 macOS settings. Machine values, the hostname and the SSH key, are asked or looked up and never stored in this repo. A new Package, Dotfile, macOS setting or Step by hand is one edit in one place.
 
 The repo moves off Ansible in one merge. The Ansible version is kept under the tag `ansible-final`. The new setup is trialled, then run on the target Mac, and only then merged.
 
