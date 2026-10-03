@@ -360,6 +360,8 @@ The two Wrapper seams are one interface with two adapters at each override: GitH
 
 **Amended after the first Trial (2026-09-27).** AC-40 as first written had Appearance show Auto with no step by hand. On macOS 27, `AppleInterfaceStyleSwitchesAutomatically` written with `defaults` takes effect only at the next login: the first Trial showed Light until a logout, and `activateSettings -u` did not change that. The owner chose to have Appearance checked after the logout that the Steps by hand already ask for.
 
+**Amended after the audit (2026-10-03).** AC-6 as first written named three commands that report a Mac's state. [#40](https://github.com/iamivanhx/macos-setup/issues/40) adds a fourth: a read-only comparison of `brew leaves --installed-on-request` and `brew list --cask` with the `Brewfile`, which lists the Packages from Homebrew that the `Brewfile` does not declare. On the target Mac it listed `shellcheck`. `brew bundle cleanup` is not that command: it uninstalls what it lists. The README's `brew bundle check` gains `--no-upgrade`, because without it the check also fails when a Package is only outdated. A re-run upgrades the Packages from Homebrew that are outdated, so it takes about a second only when nothing is outdated.
+
 **Inferred by this spec.** No ticket decided these. Each is open to an amendment.
 
 - The output of each Trial and of the first real Bootstrap is recorded as a comment on the pull request (AC-53, AC-55, AC-57). The tickets say that they run, not where the result is kept.
