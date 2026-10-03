@@ -5,19 +5,19 @@ The conventions of this repo. Each rule names a file that follows it: read that 
 ## Shell
 
 - A script starts with `#!/bin/bash` and `set -euo pipefail`, and is clean under `shellcheck`. Follows it: `bootstrap.sh`, `lint.sh`.
-- The Wrapper keeps its work in one function, `main`, and ends with one call, `main "$@"`. Follows it: `bootstrap.sh`.
+- The Wrapper keeps its steps in one function, `main`, below the helpers it calls, such as `step` and `agent_key`. The file ends with one call, `main "$@"`, though `main` reads no arguments. Follows it: `bootstrap.sh`.
 - A prompt reads the terminal. Under `curl | bash` stdin is the script, so the Wrapper runs `exec </dev/tty` before it asks anything. Follows it: `bootstrap.sh`.
 - The Wrapper reads no arguments. An override is a `BOOTSTRAP_*` environment variable that falls back to the real value when unset, as `BOOTSTRAP_REPO_URL` and `BOOTSTRAP_AGENT_SOCK` do. The Machine values reach mise the same way, as `BOOTSTRAP_HOSTNAME` and `BOOTSTRAP_SSH_PUBLIC_KEY`. Follows it: `bootstrap.sh`, `config.toml`.
 
 ## Hook lines
 
 - A hook line that sets a macOS setting reads the state first and acts only when the setting is off: `check || sudo set`, or `check || set` where the command asks for the password itself. Hooks run on every Bootstrap, so a re-run asks for no password when every setting holds. Follows it: the `post-defaults` hooks of `config.toml`.
-- A hook line hands a Machine value to a command as a quoted argument, such as `"$BOOTSTRAP_HOSTNAME"`. Nothing builds a command string from `config.toml` or a Machine value and runs it with `eval`: the only `eval` in the repo runs the shell setup that Homebrew, mise or Starship prints. Follows it: `config.toml`, `bootstrap.sh`, `dotfiles/zsh/zprofile`, `dotfiles/zsh/zshrc`.
+- A hook line hands a Machine value to a command as a quoted argument, such as `"$BOOTSTRAP_HOSTNAME"`. Nothing builds a command string from `config.toml` or a Machine value and runs it with `eval`: the only `eval` in the repo runs the shell setup that Homebrew, mise, Starship or zoxide prints. Follows it: `config.toml`, `bootstrap.sh`, `dotfiles/zsh/zprofile`, `dotfiles/zsh/zshrc`.
 
 ## One change is one edit in one place
 
 - A Package from Homebrew is one line of `Brewfile`. Follows it: `Brewfile`.
-- Any other Package, a Dotfile or a macOS setting is one entry in `config.toml`. A Dotfile's file goes under `dotfiles/`. Follows it: `config.toml`.
+- Any other Package, a Dotfile or a macOS setting is one entry in `config.toml`. A Dotfile's file goes under `dotfiles/`. A Package from its own installer is the exception: it takes one line in the task `bootstrap` and, if it has an update command, one in the task `upgrade`, as Claude Code does. Follows it: `config.toml`.
 - A Step by hand is one line of `steps-by-hand.md`. Follows it: `steps-by-hand.md`.
 
 ## Dotfiles
@@ -43,4 +43,4 @@ The conventions of this repo. Each rule names a file that follows it: read that 
 
 - Use the terms of `CONTEXT.md`, capitalised, and none of the synonyms it lists to avoid. Follows it: `README.md`, `docs/specs/replace-ansible.md`.
 - Write plain, short sentences, in the voice of the README. Follows it: `README.md`.
-- The spec and the research notes are dated records. Each research note says when it was researched. A later finding is added with its date, as a new note that builds on the old one or as a dated amendment under the spec's Further Notes, and the old text stays as it was. Follows it: `docs/research/ghostty-eye-comfort.md`, the Further Notes of `docs/specs/replace-ansible.md`.
+- The spec and the research notes are dated records. Each research note says when it was researched. A later finding is added with its date, as a new note that builds on the old one, which stays as it was, or as a dated amendment under the spec's Further Notes. A criterion of the spec is rewritten in place only when its ticket asks for it, and the amendment then records the first wording. A criterion once rewritten is kept current. Otherwise the criterion's old text stays, and the amendment says what changed. Follows it: `docs/research/ghostty-eye-comfort.md`, the Further Notes of `docs/specs/replace-ansible.md`.
