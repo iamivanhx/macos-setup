@@ -11,12 +11,13 @@ export FZF_DEFAULT_OPTS="--color=16"
 eval "$(mise activate zsh)"
 source <(fzf --zsh)
 
-# Follow the macOS appearance: Catppuccin Latte in light mode, Mocha in dark mode.
+# Follow the macOS appearance. The prompt, bat and delta use the terminal's colours.
+# Only the text on the prompt's segments changes: black in dark mode, white in light mode.
 _follow_appearance() {
   if [[ "$(defaults read -g AppleInterfaceStyle 2>/dev/null)" == "Dark" ]]; then
-    export STARSHIP_CONFIG="$HOME/.config/starship.toml" DELTA_FEATURES="catppuccin-mocha"
+    export STARSHIP_CONFIG="$HOME/.config/starship.toml"
   else
-    export STARSHIP_CONFIG="$HOME/.config/starship-light.toml" DELTA_FEATURES="catppuccin-latte"
+    export STARSHIP_CONFIG="$HOME/.config/starship-light.toml"
   fi
 }
 autoload -Uz add-zsh-hook
