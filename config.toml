@@ -45,10 +45,12 @@ ssh_public_key = { env = "BOOTSTRAP_SSH_PUBLIC_KEY", description = "Public key o
 [bootstrap.macos.dock]
 autohide = true
 apps = [
+  "/System/Applications/Apps.app",
   "/Applications/Ghostty.app",
   "/Applications/Google Chrome.app",
   "/Applications/Visual Studio Code.app",
   "/Applications/1Password.app",
+  "/System/Applications/System Settings.app",
 ]
 
 [bootstrap.macos.finder]
