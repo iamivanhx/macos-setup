@@ -17,7 +17,8 @@ uv python install
 [ -x "$HOME/.local/bin/claude" ] || curl -fsSL https://claude.ai/install.sh | bash
 '''
 
-# Upgrades every Package on the Mac, declared in this repo or not, one Install channel after another.
+# Upgrades, one Install channel after another, every Package that Homebrew, uv and pnpm have installed, declared in this repo
+# or not, the tools of this config, and Claude Code. A Package from another installer of its own, such as pi, is not upgraded.
 # Never part of the Bootstrap: run it as `mise run upgrade`. It stops at the first step that fails.
 # `--greedy-auto-updates` adds the casks that update themselves. `--greedy` would also reinstall
 # every cask whose version is `:latest`, on every run.
