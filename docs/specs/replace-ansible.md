@@ -23,7 +23,7 @@ The owner starts a Bootstrap on a Fresh Mac with one command. It fetches the Wra
 
 The Wrapper asks for the hostname, pauses once until this Mac's SSH key is in 1Password's SSH agent, and holds the Mac awake. At the end the Bootstrap prints the Steps by hand. A first run on a Fresh Mac takes about 8 minutes and asks five times. A re-run takes about a second, asks nothing, and sets back what drifted.
 
-Every Mac gets the same 28 Packages, the same Dotfiles and the same 22 macOS settings. Machine values, the hostname and the SSH key, are asked or looked up and never stored in this repo. A new Package, Dotfile, macOS setting or Step by hand is one edit in one place.
+Every Mac gets the same 27 Packages, the same Dotfiles and the same 21 macOS settings. Machine values, the hostname and the SSH key, are asked or looked up and never stored in this repo. A new Package, Dotfile, macOS setting or Step by hand is one edit in one place.
 
 The repo moves off Ansible in one merge. The Ansible version is kept under the tag `ansible-final`. The new setup is trialled, then run on the target Mac, and only then merged.
 
@@ -54,7 +54,7 @@ The repo moves off Ansible in one merge. The Ansible version is kept under the t
 23. As the owner, I want the firewall on, stealth mode on and the screen locked within 5 seconds, so that the Mac meets CIS Level 1 where it did not.
 24. As the owner, I want Touch ID for `sudo`, so that I type my password less.
 25. As the owner, I want the Dock to hold my four apps and nothing else, so that I do not clear Apple's defaults by hand.
-26. As the owner, I want Spotlight's shortcut turned off, so that Raycast can take Command-Space.
+26. Dropped by the amendment of 2026-10-03 under Further Notes. As first written: As the owner, I want Spotlight's shortcut turned off, so that Raycast can take Command-Space.
 27. As the owner, I want the Steps by hand printed at the end of every run, so that I know what is left for me to do.
 28. As the owner, I want a new Step by hand to be one line in one file, so that the checklist is easy to keep.
 29. As the owner, I want a re-run to be safe and quick, so that a re-run is how I check and repair a Mac.
@@ -112,10 +112,10 @@ Where a criterion says "in a Trial", it is observed in a clone of the golden gue
 
 ### Packages
 
-- [ ] AC-26: `Brewfile` holds exactly 23 Packages, one per line and none with a version: the formulae `git`, `gh`, `git-delta`, `mise`, `uv`, `pnpm`, `ripgrep`, `fd`, `bat`, `jq`, `fzf`, `starship`, `zsh-autosuggestions`, `zsh-syntax-highlighting`, `gitleaks`, and the casks `1password`, `1password-cli`, `ghostty`, `google-chrome`, `visual-studio-code`, `raycast`, `codex`, `font-jetbrains-mono-nerd-font`. It names no tap and no `mas` entry
+- [ ] AC-26: `Brewfile` holds exactly 22 Packages, one per line and none with a version: the formulae `git`, `gh`, `git-delta`, `mise`, `uv`, `pnpm`, `ripgrep`, `fd`, `bat`, `jq`, `fzf`, `starship`, `zsh-autosuggestions`, `zsh-syntax-highlighting`, `gitleaks`, and the casks `1password`, `1password-cli`, `ghostty`, `google-chrome`, `visual-studio-code`, `codex`, `font-jetbrains-mono-nerd-font`. It names no tap and no `mas` entry
 - [ ] AC-27: After a first run, a new login shell in the home directory runs `node --version`, which prints a current LTS version that mise installed, and `sfw`, which is on `PATH`
 - [ ] AC-28: After a first run, `uv python list --only-installed` lists a Python, and a new login shell finds `claude` and `pi` on `PATH`. pi's installer asked for no keypress during the run
-- [ ] AC-29: After a first run, `brew list --cask` lists all eight casks of the `Brewfile`, and `brew list node` fails, since Homebrew's `node` is not installed
+- [ ] AC-29: After a first run, `brew list --cask` lists all seven casks of the `Brewfile`, and `brew list node` fails, since Homebrew's `node` is not installed
 
 ### Dotfiles and Local files
 
@@ -131,8 +131,8 @@ Where a criterion says "in a Trial", it is observed in a clone of the golden gue
 
 ### macOS settings
 
-- [ ] AC-39: After a first run, these 18 settings read back with `defaults read` (with `-currentHost` for the battery percentage): global `AppleInterfaceStyleSwitchesAutomatically` true, `com.apple.swipescrolldirection` false, `AppleShowAllExtensions` true, `ApplePressAndHoldEnabled` false, `KeyRepeat` 2, `InitialKeyRepeat` 15, `NSAutomaticSpellingCorrectionEnabled` false, `NSAutomaticQuoteSubstitutionEnabled` false, `NSAutomaticDashSubstitutionEnabled` false; `com.apple.dock` `autohide` true and `persistent-apps` as Ghostty, Google Chrome, Visual Studio Code, 1Password in that order; `com.apple.finder` `FXEnableExtensionChangeWarning` false, `ShowPathbar` true, `NewWindowTarget` `PfHm`; `com.apple.symbolichotkeys` hotkey 64 `enabled` false; `com.apple.screencapture` `location` the Downloads folder and `disable-shadow` true; per-host `com.apple.controlcenter` `BatteryShowPercentage` true
-- [ ] AC-40: In a Trial with a window, after a first run and with no step by hand, System Settings shows "Show Spotlight search" as unticked, and the Dock shows Ghostty, Google Chrome, Visual Studio Code and 1Password in that order and none of Apple's default apps. After the one logout of the Steps by hand, System Settings shows Appearance as Auto
+- [ ] AC-39: After a first run, these 17 settings read back with `defaults read` (with `-currentHost` for the battery percentage): global `AppleInterfaceStyleSwitchesAutomatically` true, `com.apple.swipescrolldirection` false, `AppleShowAllExtensions` true, `ApplePressAndHoldEnabled` false, `KeyRepeat` 2, `InitialKeyRepeat` 15, `NSAutomaticSpellingCorrectionEnabled` false, `NSAutomaticQuoteSubstitutionEnabled` false, `NSAutomaticDashSubstitutionEnabled` false; `com.apple.dock` `autohide` true and `persistent-apps` as Ghostty, Google Chrome, Visual Studio Code, 1Password in that order; `com.apple.finder` `FXEnableExtensionChangeWarning` false, `ShowPathbar` true, `NewWindowTarget` `PfHm`; `com.apple.screencapture` `location` the Downloads folder and `disable-shadow` true; per-host `com.apple.controlcenter` `BatteryShowPercentage` true
+- [ ] AC-40: In a Trial with a window, after a first run and with no step by hand, the Dock shows Ghostty, Google Chrome, Visual Studio Code and 1Password in that order and none of Apple's default apps. After the one logout of the Steps by hand, System Settings shows Appearance as Auto
 - [ ] AC-41: After a first run, `socketfilterfw --getglobalstate` reports the firewall enabled, `socketfilterfw --getstealthmode` reports stealth mode on, `sysadminctl -screenLock status` reports 5 seconds, and `/etc/pam.d/sudo_local` holds an active `pam_tid.so` line
 - [ ] AC-42: After a first run, `scutil --get ComputerName`, `scutil --get LocalHostName` and `scutil --get HostName` each print `<hostname>`
 - [ ] AC-43: In a Trial with a window, a screenshot of a window taken after a first run lands in `~/Downloads` and has no window shadow
@@ -141,7 +141,7 @@ Where a criterion says "in a Trial", it is observed in a clone of the golden gue
 
 ### Steps by hand
 
-- [ ] AC-46: `steps-by-hand.md` holds six steps and no other, in this order: add this Mac's public key to GitHub as an authentication key and as a signing key unless it is there already, with the address `https://github.com/settings/keys`; sign in to the apps and the AI agents; sign in to VS Code's Settings Sync; make Google Chrome the default browser; set Command-Space as the shortcut inside Raycast; log out once, so the keyboard settings load
+- [ ] AC-46: `steps-by-hand.md` holds five steps and no other, in this order: add this Mac's public key to GitHub as an authentication key and as a signing key unless it is there already, with the address `https://github.com/settings/keys`; sign in to the apps and the AI agents; sign in to VS Code's Settings Sync; make Google Chrome the default browser; log out once, so the keyboard settings load
 - [ ] AC-47: Every run that ends with exit code 0, a first run and a re-run alike, prints the lines of `steps-by-hand.md` at its end, whether or not a step was already done
 
 ### Lint
@@ -229,7 +229,7 @@ macos-setup/
 | Install channel | Packages | Where declared |
 |---|---|---|
 | Homebrew formula (15) | `git`, `gh`, `git-delta`, `mise`, `uv`, `pnpm`, `ripgrep`, `fd`, `bat`, `jq`, `fzf`, `starship`, `zsh-autosuggestions`, `zsh-syntax-highlighting`, `gitleaks` | `Brewfile` |
-| Homebrew cask (8) | `1password`, `1password-cli`, `ghostty`, `google-chrome`, `visual-studio-code`, `raycast`, `codex`, `font-jetbrains-mono-nerd-font` | `Brewfile` |
+| Homebrew cask (7) | `1password`, `1password-cli`, `ghostty`, `google-chrome`, `visual-studio-code`, `codex`, `font-jetbrains-mono-nerd-font` | `Brewfile` |
 | mise (1) | Node, current LTS | mise config, as a tool |
 | npm global, installed with pnpm (1) | `sfw` | mise config, as the tool `npm:sfw` with pnpm as the npm package manager |
 | uv (1) | Python, latest | mise config, in the task |
@@ -247,11 +247,11 @@ macos-setup/
 - The light Starship file is generated from the stored one by changing the `palette` line. It is an output of the Bootstrap, not a Dotfile.
 - A zsh hook that runs before each prompt reads the macOS appearance and exports `STARSHIP_CONFIG` and `DELTA_FEATURES`. Ghostty and bat follow the appearance by their own config. fzf takes the terminal's colours.
 - `~/.zshrc.local` is a Local file the owner writes. Git's `config.local` and 1Password's `agent.toml` are Local files the Bootstrap writes.
-- VS Code's config travels with Settings Sync. Raycast and 1Password keep their own. Config for Claude Code, Codex CLI and pi stays out of this repo.
+- VS Code's config travels with Settings Sync. 1Password keeps its own. Config for Claude Code, Codex CLI and pi stays out of this repo.
 
 **macOS settings** ([#14](https://github.com/iamivanhx/macos-setup/issues/14), [#20](https://github.com/iamivanhx/macos-setup/issues/20))
 
-- 22 settings. 18 are entries in the mise config, which mise reports on and sets back. AC-39 lists them with their keys and values.
+- 21 settings. 17 are entries in the mise config, which mise reports on and sets back. AC-39 lists them with their keys and values.
 - 4 need `sudo` and are hook lines: the firewall, stealth mode, the lock delay, and Touch ID for `sudo`. The three names of the Mac are a fifth `sudo` hook line, and one more hook line restarts the Dock and Finder.
 - Hooks run on every Bootstrap, so each `sudo` hook line first reads the state and acts only when the setting is off. This form is from the prototype:
 
@@ -361,6 +361,8 @@ The two Wrapper seams are one interface with two adapters at each override: GitH
 **Amended after the first Trial (2026-09-27).** AC-40 as first written had Appearance show Auto with no step by hand. On macOS 27, `AppleInterfaceStyleSwitchesAutomatically` written with `defaults` takes effect only at the next login: the first Trial showed Light until a logout, and `activateSettings -u` did not change that. The owner chose to have Appearance checked after the logout that the Steps by hand already ask for.
 
 **Amended after the audit (2026-10-03).** AC-6 as first written named three commands that report a Mac's state. [#40](https://github.com/iamivanhx/macos-setup/issues/40) adds a fourth: a read-only comparison of `brew leaves --installed-on-request` and `brew list --cask` with the `Brewfile`, which lists the Packages from Homebrew that the `Brewfile` does not declare. On the target Mac it listed `shellcheck`. `brew bundle cleanup` is not that command: it uninstalls what it lists. The README's `brew bundle check` gains `--no-upgrade`, because without it the check also fails when a Package is only outdated. A re-run upgrades the Packages from Homebrew that are outdated, so it takes about a second only when nothing is outdated.
+
+**Amended after the audit (2026-10-03).** User story 26, AC-26, AC-29, AC-39, AC-40 and AC-46 as first written had Raycast installed and given Command-Space, with Spotlight's shortcut turned off. The owner had never used Raycast, and on macOS 27 Spotlight (Command-Space), its clipboard history and the built-in window tiling do the three jobs it was picked for. With [#44](https://github.com/iamivanhx/macos-setup/issues/44) the owner chose to remove it. The `Brewfile` loses the `raycast` cask, so AC-26 holds 22 Packages, AC-29 and the Packages table seven casks, and the Solution 27 Packages. The setting that turned off Spotlight's shortcut, hotkey 64 of `com.apple.symbolichotkeys`, goes too, so AC-39 holds 17 settings, the Solution and the macOS settings 21, and AC-40 no longer has "Show Spotlight search" unticked. The last hook line drops `activateSettings -u` and keeps `killall Dock Finder || true`: hotkey 64 was the only keyboard shortcut the repo set, and `activateSettings -u` does not load Appearance (2026-09-27, above). The Step by hand that set Command-Space inside Raycast goes, so AC-46 holds five steps. The logout stays, because key repeat and Appearance still need it. User story 26 is dropped. mise does not undo a setting removed from its config, so on a Mac that already has Raycast, the owner runs `brew uninstall --cask raycast` and ticks "Show Spotlight search" again by hand.
 
 **Inferred by this spec.** No ticket decided these. Each is open to an amendment.
 

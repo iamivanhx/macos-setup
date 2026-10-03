@@ -72,13 +72,6 @@ key = "BatteryShowPercentage"
 host = "current"
 value = true
 
-# Spotlight's Command-Space off, so Raycast can take it.
-[[bootstrap.macos.defaults_entries]]
-domain = "com.apple.symbolichotkeys"
-key = "AppleSymbolicHotKeys"
-path = ["64", "enabled"]
-value = false
-
 # Settings that need `sudo`, and the restart that shows the rest. mise reports no drift on these.
 # Hooks run on every Bootstrap, so each line first reads the state and skips a setting that holds.
 [bootstrap.hooks]
@@ -88,7 +81,6 @@ post-defaults = [
   '/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode | grep -q "is on" || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on',
   'grep -qs "^auth.*pam_tid\.so" /etc/pam.d/sudo_local || sed "s/^#auth/auth/" /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null',
   'sysadminctl -screenLock status 2>&1 | grep -q "is 5 seconds" || sysadminctl -screenLock 5 -password -',
-  # activateSettings loads the keyboard shortcuts, Spotlight's among them, without a logout.
-  '/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u; killall Dock Finder || true',
+  'killall Dock Finder || true',
 ]
 final = "cat ~/.config/mise/steps-by-hand.md"
