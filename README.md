@@ -1,6 +1,6 @@
 # macos-setup
 
-This repo sets up a Fresh Mac: its Packages, its Dotfiles and its macOS settings. One command starts a Bootstrap. A re-run is safe and quick, and it is how you check and repair a Mac.
+This repo sets up a Fresh Mac: its Packages, its Dotfiles and its macOS settings. One command starts a Bootstrap. A re-run is safe, and it is how you check and repair a Mac. It also upgrades the Packages from Homebrew that are outdated.
 
 It is written for the owner's Macs, on Apple Silicon with macOS 27. Every Mac gets the same setup.
 
@@ -50,7 +50,7 @@ At the end of the run the Wrapper prints the Steps by hand from [`steps-by-hand.
 
 The tools' own reports tell a Mac's state. This repo has no check script.
 
-- **A re-run of the Wrapper**, `~/Projects/macos-setup/bootstrap.sh`. It takes about a second, asks nothing, and sets back what drifted. It asks for the `sudo` password only to set back a setting that needs it.
+- **A re-run of the Wrapper**, `~/Projects/macos-setup/bootstrap.sh`. It upgrades the Packages from Homebrew that are outdated, because the Wrapper runs `brew bundle`, which upgrades by default. It takes about a second when nothing is outdated, asks nothing, and sets back what drifted. It asks for the `sudo` password only to set back a setting that needs it.
 - **`mise bootstrap status --missing`**. It exits 1 when a Dotfile, a macOS setting or a tool of `config.toml` is out of step. Run by hand, it needs the two Machine values in the environment, `BOOTSTRAP_HOSTNAME` and `BOOTSTRAP_SSH_PUBLIC_KEY`. Without them it reports the two Local files as out of step. The four settings that need `sudo` are not in its report.
 
   ```sh
@@ -60,7 +60,15 @@ The tools' own reports tell a Mac's state. This repo has no check script.
   mise bootstrap status --missing
   ```
 
-- **`brew bundle check --file ~/Projects/macos-setup/Brewfile`**. It reports whether every Package of the `Brewfile` is installed.
+- **`brew bundle check --no-upgrade --file ~/Projects/macos-setup/Brewfile`**. It exits 1 when a Package of the `Brewfile` is not installed, and `--verbose` names it. When every one is installed it prints `The Brewfile's dependencies are satisfied.` Without `--no-upgrade` it also fails when a Package is only outdated.
+- **The Packages from Homebrew that the `Brewfile` does not declare**, such as one installed by hand. This prints one per line, and nothing when there are none. It only reads: it removes nothing. A formula that another installed Package depends on is not listed.
+
+  ```sh
+  comm -23 <({ brew leaves --installed-on-request; brew list --cask; } | sort) \
+    <(brew bundle list --all --file ~/Projects/macos-setup/Brewfile | sort)
+  ```
+
+  `brew bundle cleanup` is not a check: it uninstalls what it lists.
 
 ### Checks on a real Mac
 
