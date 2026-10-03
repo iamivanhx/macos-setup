@@ -20,5 +20,5 @@ zsh -n dotfiles/zsh/zprofile
 
 # Ghostty checks only the named file, not its default files. The runner has no Ghostty.
 if command -v ghostty >/dev/null; then
-  ghostty +validate-config --config-file=dotfiles/ghostty/config
+  ghostty +validate-config --config-file=dotfiles/ghostty/config.ghostty
 fi
