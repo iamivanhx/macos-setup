@@ -5,6 +5,5 @@ Steps by hand. The Bootstrap cannot do these:
   [ ] Sign in to the apps and the AI agents
   [ ] Sign in to VS Code's Settings Sync
   [ ] Make Google Chrome the default browser
-  [ ] Set Command-Space as the shortcut inside Raycast
   [ ] Log out once, so the keyboard settings load
 
