@@ -233,7 +233,7 @@ macos-setup/
 | mise (1) | Node, current LTS | mise config, as a tool |
 | npm global, installed with pnpm (1) | `sfw` | mise config, as the tool `npm:sfw` with pnpm as the npm package manager |
 | uv (1) | Python, latest | mise config, in the task |
-| The Package's own installer (2) | Claude Code, pi | mise config, in the task |
+| The Package's own installer (1) | Claude Code | mise config, in the task |
 
 - The task runs on every Bootstrap, so each installer is skipped when its command is already there.
 - pi's installer runs after mise has put Node on `PATH`. A mise task has no terminal, so the installer never waits for its keypress.
