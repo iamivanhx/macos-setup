@@ -88,6 +88,11 @@ post-dotfiles = [
   # gh clones over SSH with this Mac's key, as git does. gh keeps its sign-in beside its config, so that is no Dotfile.
   '[ "$(gh config get git_protocol 2>/dev/null)" = ssh ] || gh config set git_protocol ssh',
 ]
+# Fingerprints of what the Dock and Finder show, taken before mise applies the macOS settings. Each run overwrites the file.
+# Finder's takes in the global AppleShowAllExtensions too, because Finder shows that setting only after a restart.
+pre-defaults = [
+  'f="${TMPDIR:-/tmp}/macos-setup-dock-finder"; { defaults export com.apple.dock - | md5; { defaults export com.apple.finder -; defaults read NSGlobalDomain AppleShowAllExtensions; } 2>/dev/null | md5; } >"$f" || true',
+]
 # Settings that need `sudo`, and the restart that shows the rest. mise reports no drift on these.
 post-defaults = [
   'for name in ComputerName LocalHostName HostName; do [ "$(scutil --get $name 2>/dev/null)" = "$BOOTSTRAP_HOSTNAME" ] || sudo scutil --set $name "$BOOTSTRAP_HOSTNAME"; done',
@@ -95,6 +100,8 @@ post-defaults = [
   '/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode | grep -q "is on" || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on',
   'grep -qs "^auth.*pam_tid\.so" /etc/pam.d/sudo_local || sed "s/^#auth/auth/" /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null',
   'sysadminctl -screenLock status 2>&1 | grep -q "is 5 seconds" || sysadminctl -screenLock 5 -password -',
-  'killall Dock Finder || true',
+  # mise tells hooks nothing about what it changed, so this line reads the fingerprints again: the Dock or Finder restarts
+  # only when its own differs from pre-defaults', and a re-run that changes nothing restarts neither. No file: both restart.
+  'f="${TMPDIR:-/tmp}/macos-setup-dock-finder"; [ "$(sed -n 1p "$f" 2>/dev/null)" = "$(defaults export com.apple.dock - | md5)" ] || killall Dock || true; [ "$(sed -n 2p "$f" 2>/dev/null)" = "$( { defaults export com.apple.finder -; defaults read NSGlobalDomain AppleShowAllExtensions; } 2>/dev/null | md5)" ] || killall Finder || true; rm -f "$f"',
 ]
 final = "cat ~/.config/mise/steps-by-hand.md"
