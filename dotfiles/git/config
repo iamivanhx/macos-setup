@@ -9,12 +9,18 @@
 [commit]
 	gpgSign = true
 	verbose = true
+[branch]
+	sort = -committerdate
 [tag]
 	gpgSign = true
+	sort = version:refname
+[column]
+	ui = auto
 [init]
 	defaultBranch = main
 [push]
 	autoSetupRemote = true
+	followTags = true
 [fetch]
 	prune = true
 [rebase]
@@ -31,13 +37,12 @@
 [core]
 	editor = code --wait
 	pager = delta
+[help]
+	autocorrect = prompt
 [interactive]
 	diffFilter = delta --color-only
-[delta "catppuccin-latte"]
-	light = true
-	syntax-theme = Catppuccin Latte
-[delta "catppuccin-mocha"]
-	dark = true
-	syntax-theme = Catppuccin Mocha
+[delta]
+	syntax-theme = ansi
+	navigate = true
 [include]
 	path = ~/.config/git/config.local

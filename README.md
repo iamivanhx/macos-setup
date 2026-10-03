@@ -1,15 +1,17 @@
 # macos-setup
 
-This repo sets up a Fresh Mac: its Packages, its Dotfiles and its macOS settings. One command starts a Bootstrap. A re-run is safe and quick, and it is how you check and repair a Mac.
+This repo sets up a Fresh Mac: its Packages, its Dotfiles and its macOS settings. One command starts a Bootstrap. A re-run is safe, and it is how you check and repair a Mac: it installs what is missing, sets back what drifted, and upgrades only what a missing Package needs. Upgrading is a command of its own, `mise run upgrade`.
 
 It is written for the owner's Macs, on Apple Silicon with macOS 27. Every Mac gets the same setup.
+
+A Fresh Mac is installed on APFS (Case-sensitive), one of [Apple's APFS formats](https://support.apple.com/guide/disk-utility/file-system-formats-dsku19ed921c/mac), by choice: it matches Linux, where code and CI run, so a file named with the wrong case fails here as it would in CI. The trade-off is that some apps refuse a case-sensitive volume, and [Adobe's installers](https://helpx.adobe.com/download-install/apps/troubleshoot/error-codes-1-99/error22.html) are the documented case. For such an app, if it can install on another volume, add a separate volume in plain APFS, which is not case-sensitive, to the same container rather than erase the Mac: each volume has its own format and shares the container's space. That does not help an app that checks the startup volume, as Adobe's installers do.
 
 ## How it works
 
 The Wrapper, `bootstrap.sh`, runs two standard tools in order:
 
 - **Homebrew** installs the Packages listed in `Brewfile`.
-- **mise bootstrap** does everything else from `config.toml`: the Dotfiles, the Local files, the macOS settings, Node, `sfw`, Python, Claude Code and pi.
+- **mise bootstrap** does everything else from `config.toml`: the Dotfiles, the Local files, the macOS settings, Node, `sfw`, Python and Claude Code.
 
 | Path | What it holds |
 |---|---|
@@ -22,7 +24,7 @@ The Wrapper, `bootstrap.sh`, runs two standard tools in order:
 
 On a Mac the repo is a checkout at `~/Projects/macos-setup`, and `~/.config/mise` is a link to it. The Dotfiles in the home directory are links into the checkout, so an edit to one shows in `git status` there.
 
-The hostname and this Mac's SSH public key are Machine values: a run asks for them or looks them up, and never stores them in this repo. The Bootstrap writes them into two Local files, `~/.config/git/config.local` and `~/.config/1Password/ssh/agent.toml`. Your own additions to the shell go in `~/.zshrc.local`, which the Bootstrap never touches.
+The hostname and this Mac's SSH public key are Machine values: a run asks for them or looks them up, and never stores them in this repo. The Bootstrap writes them into two Local files, `~/.config/git/config.local` and `~/.config/1Password/ssh/agent.toml`. Two Local files are yours to write, and the Bootstrap never creates or touches them. Your own additions to the shell go in `~/.zshrc.local`. This Mac's own Ghostty values, such as a different `font-size` on a laptop, go in `~/.config/ghostty/config.local`. Ghostty reads it after the Ghostty Dotfile, so its values win, and a Mac without one runs the Ghostty Dotfile as it is.
 
 ## Start a Bootstrap
 
@@ -50,7 +52,7 @@ At the end of the run the Wrapper prints the Steps by hand from [`steps-by-hand.
 
 The tools' own reports tell a Mac's state. This repo has no check script.
 
-- **A re-run of the Wrapper**, `~/Projects/macos-setup/bootstrap.sh`. It takes about a second, asks nothing, and sets back what drifted. It asks for the `sudo` password only to set back a setting that needs it.
+- **A re-run of the Wrapper**, `~/Projects/macos-setup/bootstrap.sh`. It installs a Package of the `Brewfile` that is missing and upgrades none that is outdated, because the Wrapper runs `brew bundle --no-upgrade`. Installing a missing Package can still upgrade a Package it depends on. A re-run takes about a second when nothing is missing, asks nothing, and sets back what drifted. It asks for the `sudo` password only to set back a setting that needs it.
 - **`mise bootstrap status --missing`**. It exits 1 when a Dotfile, a macOS setting or a tool of `config.toml` is out of step. Run by hand, it needs the two Machine values in the environment, `BOOTSTRAP_HOSTNAME` and `BOOTSTRAP_SSH_PUBLIC_KEY`. Without them it reports the two Local files as out of step. The four settings that need `sudo` are not in its report.
 
   ```sh
@@ -60,7 +62,15 @@ The tools' own reports tell a Mac's state. This repo has no check script.
   mise bootstrap status --missing
   ```
 
-- **`brew bundle check --file ~/Projects/macos-setup/Brewfile`**. It reports whether every Package of the `Brewfile` is installed.
+- **`brew bundle check --no-upgrade --file ~/Projects/macos-setup/Brewfile`**. It exits 1 when a Package of the `Brewfile` is not installed, and `--verbose` names it. When every one is installed it prints `The Brewfile's dependencies are satisfied.` Without `--no-upgrade` it also fails when a Package is only outdated.
+- **The Packages from Homebrew that the `Brewfile` does not declare**, such as one installed by hand. This prints one per line, and nothing when there are none. It only reads: it removes nothing. A formula that another installed Package depends on is not listed.
+
+  ```sh
+  comm -23 <({ brew leaves --installed-on-request; brew list --cask; } | sort) \
+    <(brew bundle list --all --file ~/Projects/macos-setup/Brewfile | sort)
+  ```
+
+  `brew bundle cleanup` is not a check: it uninstalls what it lists.
 
 ### Checks on a real Mac
 
@@ -70,6 +80,24 @@ No tool reports these. Check them after the first Bootstrap on a real Mac:
 - [ ] `sudo` in a new terminal accepts Touch ID.
 - [ ] The key step with 1Password: with 1Password unlocked and its SSH agent on, the key check finds `SSH Key (<hostname>)` with no pause, and `ssh -T git@github.com` greets your GitHub account.
 - [ ] A push over SSH: `git push` from the checkout succeeds, and GitHub shows the pushed commit as verified.
+
+## Upgrade a Mac
+
+A re-run upgrades only what a missing Package needs. To bring the Packages to their newest versions, run this from any directory:
+
+```sh
+mise run upgrade
+```
+
+It covers every Package that Homebrew, uv and pnpm have installed, whether this repo declares it or not, such as one installed by hand, and the tools of `config.toml` and Claude Code. A Package from another installer of its own, such as pi, is not upgraded. It runs these in order and stops at the first that fails:
+
+- **Homebrew**: `brew update`, then `brew upgrade --greedy-auto-updates`. It upgrades every formula and cask, with the casks that update themselves, such as Ghostty, Google Chrome, Visual Studio Code and 1Password. Homebrew may quit an app to upgrade it and opens it again after, but never quits the terminal it runs in.
+- **mise**: `mise upgrade`, for the tools of `config.toml`, Node and `sfw`. A tool added with `mise use -g` lands in `config.toml`, so it is covered too. `lts` and `latest` stay as they are written.
+- **uv**: `uv python upgrade`, then `uv tool upgrade --all`.
+- **pnpm**: `pnpm update -g`, for the global Packages. It needs pnpm's global bin directory on `PATH`, which `~/.zprofile` adds, so run the Upgrade in a new terminal after a Bootstrap.
+- **Claude Code**: `claude update`.
+
+A second run straight after the first changes nothing. Nothing runs the Upgrade on a schedule, and a Bootstrap never runs it.
 
 ## Fix a break
 

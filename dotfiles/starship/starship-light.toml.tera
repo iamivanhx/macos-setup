@@ -1,1 +1,1 @@
-{{ read_file(path=env.HOME ~ "/.config/mise/dotfiles/starship/starship.toml") | replace(from="palette = 'catppuccin_mocha'", to="palette = 'catppuccin_latte'") }}
+{{ read_file(path=env.HOME ~ "/.config/mise/dotfiles/starship/starship.toml") | replace(from="palette = 'ansi_dark'", to="palette = 'ansi_light'") }}

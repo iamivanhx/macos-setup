@@ -1,5 +1,7 @@
 # AGENTS.md
 
+**Coding standards**: read `CODING_STANDARDS.md` before you change a file or review a change.
+
 ## Agent skills
 
 ### Issue tracker

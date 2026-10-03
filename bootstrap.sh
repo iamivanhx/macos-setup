@@ -11,6 +11,17 @@ AGENT_SOCK="${BOOTSTRAP_AGENT_SOCK:-$HOME/Library/Group Containers/2BUA8C4S2C.co
 
 step() { printf '\n==> %s\n' "$1"; }
 
+# The first key in the agent whose comment is exactly $1, so not "$1 old" or "Work $1". A line
+# of `ssh-add -L` is `<type> <key> <comment>`: the comment is the line without its first two
+# fields. It fails when there is none: the key check pauses on that.
+agent_key() {
+  local key
+  while IFS= read -r key; do
+    if [[ "${key#* * }" == "$1" ]]; then echo "$key"; return 0; fi
+  done < <(SSH_AUTH_SOCK="$AGENT_SOCK" ssh-add -L 2>/dev/null)
+  return 1
+}
+
 main() {
   # Under `curl | bash` stdin is the script. Every prompt below needs the terminal.
   [[ -t 0 ]] || exec </dev/tty
@@ -20,9 +31,13 @@ main() {
 
   step "Hostname"
   if ! BOOTSTRAP_HOSTNAME="$(scutil --get HostName 2>/dev/null)"; then
-    # Asked again until it is not empty: the templates never see an empty value.
-    while [[ -z "$BOOTSTRAP_HOSTNAME" ]]; do
+    # Checked as it is typed: it becomes the LocalHostName, which Apple limits to these
+    # characters, and the title of the SSH key, which the owner makes before that is set.
+    local allowed='^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?$'
+    while true; do
       read -r -p "Hostname for this Mac: " BOOTSTRAP_HOSTNAME
+      [[ "$BOOTSTRAP_HOSTNAME" =~ $allowed ]] && break
+      echo "Use 1 to 63 letters, digits and hyphens, with no hyphen first or last. Example: studio-2"
     done
   fi
   echo "$BOOTSTRAP_HOSTNAME"
@@ -38,11 +53,12 @@ main() {
   [[ -d "$REPO_DIR/.git" ]] || git clone "$REPO_URL" "$REPO_DIR"
 
   step "Packages from Homebrew"
-  brew bundle --file "$REPO_DIR/Brewfile"
+  # Installs what is missing and leaves an outdated Package as it is: upgrading is `mise run upgrade`.
+  brew bundle --no-upgrade --file "$REPO_DIR/Brewfile"
 
   step "This Mac's SSH key"
   local title="SSH Key ($BOOTSTRAP_HOSTNAME)" line
-  until line="$(SSH_AUTH_SOCK="$AGENT_SOCK" ssh-add -L 2>/dev/null | grep -F "$title")"; do
+  until line="$(agent_key "$title")"; do
     cat <<EOF
 1Password's SSH agent does not offer a key titled "$title". One of these is the cause:
   - 1Password is not signed in

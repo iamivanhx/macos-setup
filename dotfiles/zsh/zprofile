@@ -2,3 +2,8 @@
 eval "$(/opt/homebrew/bin/brew shellenv zsh)"
 typeset -U path PATH
 path=("$HOME/.local/bin" $path)
+# pnpm's global bin directory, as `pnpm setup` adds it. Without it `pnpm update -g` and `pnpm add -g` fail.
+export PNPM_HOME="$HOME/Library/pnpm"
+path=("$PNPM_HOME/bin" $path)
+# mise's shims, for shells that are not interactive. zshrc activates mise in full.
+eval "$(mise activate zsh --shims)"

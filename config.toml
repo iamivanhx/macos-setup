@@ -15,8 +15,22 @@ npm.package_manager = "pnpm"
 run = '''
 uv python install
 [ -x "$HOME/.local/bin/claude" ] || curl -fsSL https://claude.ai/install.sh | bash
-# pi's installer puts pi in ~/.local/bin only when that is on PATH while it runs.
-[ -x "$HOME/.local/bin/pi" ] || [ -x "$HOME/.pi/agent/bin/pi" ] || curl -fsSL https://pi.dev/install.sh | PATH="$HOME/.local/bin:$PATH" sh
+'''
+
+# Upgrades, one Install channel after another, every Package that Homebrew, uv and pnpm have installed, declared in this repo
+# or not, the tools of this config, and Claude Code. A Package from another installer of its own, such as pi, is not upgraded.
+# Never part of the Bootstrap: run it as `mise run upgrade`. It stops at the first step that fails.
+# `--greedy-auto-updates` adds the casks that update themselves. `--greedy` would also reinstall
+# every cask whose version is `:latest`, on every run.
+[tasks.upgrade]
+run = '''
+brew update
+brew upgrade --greedy-auto-updates
+mise upgrade
+uv python upgrade
+uv tool upgrade --all
+pnpm update -g
+claude update
 '''
 
 # --- Machine values ---------------------------------------------------------
@@ -30,7 +44,7 @@ ssh_public_key = { env = "BOOTSTRAP_SSH_PUBLIC_KEY", description = "Public key o
 "~/.zprofile" = "dotfiles/zsh/zprofile"
 "~/.zshrc" = "dotfiles/zsh/zshrc"
 "~/.config/starship.toml" = "dotfiles/starship/starship.toml"
-"~/.config/ghostty/config" = "dotfiles/ghostty/config"
+"~/.config/ghostty/config.ghostty" = "dotfiles/ghostty/config.ghostty"
 "~/.config/git/config" = "dotfiles/git/config"
 "~/.config/git/ignore" = "dotfiles/git/ignore"
 "~/.config/bat/config" = "dotfiles/bat/config"
@@ -45,10 +59,12 @@ ssh_public_key = { env = "BOOTSTRAP_SSH_PUBLIC_KEY", description = "Public key o
 [bootstrap.macos.dock]
 autohide = true
 apps = [
+  "/System/Applications/Apps.app",
   "/Applications/Ghostty.app",
   "/Applications/Google Chrome.app",
   "/Applications/Visual Studio Code.app",
   "/Applications/1Password.app",
+  "/System/Applications/System Settings.app",
 ]
 
 [bootstrap.macos.finder]
@@ -72,23 +88,46 @@ key = "BatteryShowPercentage"
 host = "current"
 value = true
 
-# Spotlight's Command-Space off, so Raycast can take it.
+# AirPlay Receiver off: it holds ports 5000 and 7000 on every network interface (CIS 2.3.1.2).
 [[bootstrap.macos.defaults_entries]]
-domain = "com.apple.symbolichotkeys"
-key = "AppleSymbolicHotKeys"
-path = ["64", "enabled"]
+domain = "com.apple.controlcenter"
+key = "AirplayReceiverEnabled"
+host = "current"
 value = false
 
-# Settings that need `sudo`, and the restart that shows the rest. mise reports no drift on these.
-# Hooks run on every Bootstrap, so each line first reads the state and skips a setting that holds.
+# Screen saver after 10 idle minutes, so with the 5-second lock delay an idle Mac locks within about 10 minutes (CIS 2.11.1).
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.screensaver"
+key = "idleTime"
+host = "current"
+value = 600
+
+# Hooks run on every Bootstrap, so a line that changes the Mac first reads the state and acts only when needed.
+# The pre-defaults line only records the state, and final only prints the Steps by hand.
 [bootstrap.hooks]
+# Ghostty reads a config file in Application Support after the Dotfile, and Open Configuration opens it.
+# An empty one is removed. A non-empty one is left as it is, and the run names it.
+post-dotfiles = [
+  'for name in config.ghostty config; do f="$HOME/Library/Application Support/com.mitchellh.ghostty/$name"; if [ -s "$f" ]; then echo "$f overrides the Ghostty Dotfile. Move its settings into ~/.config/ghostty/config.ghostty, then delete it."; elif [ -f "$f" ]; then rm "$f"; fi; done',
+  # gh clones over SSH with this Mac's key, as git does. gh keeps its sign-in beside its config, so that is no Dotfile.
+  '[ "$(gh config get git_protocol 2>/dev/null)" = ssh ] || gh config set git_protocol ssh',
+]
+# Fingerprints of what the Dock and Finder show, taken before mise applies the macOS settings. Each run overwrites the file.
+# Finder's takes in the global AppleShowAllExtensions too, because Finder shows that setting only after a restart.
+# The restart line removes the file, so a file already here means the last run stopped before its restart: the line then
+# writes fingerprints that match nothing, and both restart.
+pre-defaults = [
+  'f="${TMPDIR:-/tmp}/macos-setup-dock-finder"; if [ -e "$f" ]; then printf "unfinished\nunfinished\n" >"$f"; else { defaults export com.apple.dock - | md5; { defaults export com.apple.finder -; defaults read NSGlobalDomain AppleShowAllExtensions; } 2>/dev/null | md5; } >"$f"; fi || true',
+]
+# Settings that need `sudo`, and the restart that shows the rest. mise reports no drift on these.
 post-defaults = [
   'for name in ComputerName LocalHostName HostName; do [ "$(scutil --get $name 2>/dev/null)" = "$BOOTSTRAP_HOSTNAME" ] || sudo scutil --set $name "$BOOTSTRAP_HOSTNAME"; done',
   '/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate | grep -q enabled || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on',
   '/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode | grep -q "is on" || sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on',
   'grep -qs "^auth.*pam_tid\.so" /etc/pam.d/sudo_local || sed "s/^#auth/auth/" /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null',
   'sysadminctl -screenLock status 2>&1 | grep -q "is 5 seconds" || sysadminctl -screenLock 5 -password -',
-  # activateSettings loads the keyboard shortcuts, Spotlight's among them, without a logout.
-  '/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u; killall Dock Finder || true',
+  # mise tells hooks nothing about what it changed, so this line reads the fingerprints again: the Dock or Finder restarts
+  # only when its own differs from pre-defaults', and a re-run that changes nothing restarts neither. No file: both restart.
+  'f="${TMPDIR:-/tmp}/macos-setup-dock-finder"; [ "$(sed -n 1p "$f" 2>/dev/null)" = "$(defaults export com.apple.dock - | md5)" ] || killall Dock || true; [ "$(sed -n 2p "$f" 2>/dev/null)" = "$( { defaults export com.apple.finder -; defaults read NSGlobalDomain AppleShowAllExtensions; } 2>/dev/null | md5)" ] || killall Finder || true; rm -f "$f"',
 ]
 final = "cat ~/.config/mise/steps-by-hand.md"

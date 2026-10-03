@@ -28,6 +28,10 @@ _Avoid_: Dependency, tool, formula (when meaning any installed software)
 The source a package is installed from, such as Homebrew or the package's own installer. A language runtime is a package like any other, whatever its install channel.
 _Avoid_: Package manager, install method, source
 
+**Upgrade**:
+A deliberate command, `mise run upgrade`, that brings Packages to their newest versions, one Install channel after another: every Package that Homebrew, uv or pnpm has installed, whether this repo declares it or not, the tools of the global mise config, and Claude Code. A Package from another installer of its own, such as pi, is not upgraded. An Upgrade is never part of the Bootstrap, and a re-run of the Wrapper upgrades only what a missing Package needs.
+_Avoid_: Update, sync, re-run (when meaning an Upgrade)
+
 **Dotfile**:
 A config file in the home directory that is kept in this repo and put in place by the bootstrap.
 _Avoid_: Config, rc file
