@@ -101,7 +101,8 @@ key = "idleTime"
 host = "current"
 value = 600
 
-# Hooks run on every Bootstrap, so each line first reads the state and acts only when needed.
+# Hooks run on every Bootstrap, so a line that changes the Mac first reads the state and acts only when needed.
+# The pre-defaults line only records the state, and final only prints the Steps by hand.
 [bootstrap.hooks]
 # Ghostty reads a config file in Application Support after the Dotfile, and Open Configuration opens it.
 # An empty one is removed. A non-empty one is left as it is, and the run names it.
