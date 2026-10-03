@@ -33,11 +33,7 @@
 	pager = delta
 [interactive]
 	diffFilter = delta --color-only
-[delta "catppuccin-latte"]
-	light = true
-	syntax-theme = Catppuccin Latte
-[delta "catppuccin-mocha"]
-	dark = true
-	syntax-theme = Catppuccin Mocha
+[delta]
+	syntax-theme = ansi
 [include]
 	path = ~/.config/git/config.local
