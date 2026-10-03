@@ -4,6 +4,8 @@ This repo sets up a Fresh Mac: its Packages, its Dotfiles and its macOS settings
 
 It is written for the owner's Macs, on Apple Silicon with macOS 27. Every Mac gets the same setup.
 
+A Fresh Mac is installed on APFS (Case-sensitive), one of [Apple's APFS formats](https://support.apple.com/guide/disk-utility/file-system-formats-dsku19ed921c/mac), by choice: it matches Linux, where code and CI run, so a file named with the wrong case fails here as it would in CI. The trade-off is that some apps refuse a case-sensitive volume, and [Adobe's installers](https://helpx.adobe.com/download-install/apps/troubleshoot/error-codes-1-99/error22.html) are the documented case. For such an app, add a separate volume in plain APFS, which is not case-sensitive, to the same container rather than erase the Mac: each volume has its own format and shares the container's space.
+
 ## How it works
 
 The Wrapper, `bootstrap.sh`, runs two standard tools in order:
