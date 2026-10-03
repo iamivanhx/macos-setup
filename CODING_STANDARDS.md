@@ -23,7 +23,7 @@ The conventions of this repo. Each rule names a file that follows it: read that 
 ## Dotfiles
 
 - A Dotfile is a plain file under its own name, with no hidden or `dot_` name, in one directory per app under `dotfiles/`. Follows it: `dotfiles/`, and the `[dotfiles]` table of `config.toml`.
-- The Bootstrap runs no command to write a Dotfile. A template is only for a Local file or for the light Starship file, which is made from the stored Starship Dotfile by changing its `palette` line. Follows it: the template entries of `config.toml`, `dotfiles/starship/starship.toml`, `dotfiles/starship/starship-light.toml.tera`.
+- The Bootstrap runs no command to write a Dotfile. A template is only for a Local file. Follows it: the template entries of `config.toml`.
 
 ## Machine values
 

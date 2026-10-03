@@ -49,8 +49,6 @@ ssh_public_key = { env = "BOOTSTRAP_SSH_PUBLIC_KEY", description = "Public key o
 "~/.config/git/ignore" = "dotfiles/git/ignore"
 "~/.config/bat/config" = "dotfiles/bat/config"
 "~/.ssh/config" = "dotfiles/ssh/config"
-# Generated: the Starship file with the light palette.
-"~/.config/starship-light.toml" = { source = "dotfiles/starship/starship-light.toml.tera", mode = "template" }
 # Local files, written from Machine values.
 "~/.config/git/config.local" = { source = "dotfiles/git/config.local.tera", mode = "template" }
 "~/.config/1Password/ssh/agent.toml" = { source = "dotfiles/1password/agent.toml.tera", mode = "template" }
