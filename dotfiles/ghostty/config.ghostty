@@ -1,4 +1,4 @@
-theme = light:Modus Operandi,dark:Modus Vivendi
+theme = Dracula
 font-size = 18
 minimum-contrast = 1.1
 
