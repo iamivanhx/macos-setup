@@ -1,5 +1,6 @@
 #!/bin/bash
-# The lint command: checks the Wrapper, config.toml and the zsh Dotfiles. GitHub runs it on every push.
+# The lint command: checks the Wrapper, config.toml, the zsh Dotfiles and, where Ghostty is installed, the Ghostty
+# Dotfile. GitHub runs it on every push.
 set -euo pipefail
 cd "$(dirname "$0")"
 

@@ -1,10 +1,10 @@
 # macos-setup
 
-This repo sets up a Fresh Mac: its Packages, its Dotfiles and its macOS settings. One command starts a Bootstrap. A re-run is safe, and it is how you check and repair a Mac: it installs what is missing, sets back what drifted, and upgrades nothing. Upgrading is a command of its own, `mise run upgrade`.
+This repo sets up a Fresh Mac: its Packages, its Dotfiles and its macOS settings. One command starts a Bootstrap. A re-run is safe, and it is how you check and repair a Mac: it installs what is missing, sets back what drifted, and upgrades only what a missing Package needs. Upgrading is a command of its own, `mise run upgrade`.
 
 It is written for the owner's Macs, on Apple Silicon with macOS 27. Every Mac gets the same setup.
 
-A Fresh Mac is installed on APFS (Case-sensitive), one of [Apple's APFS formats](https://support.apple.com/guide/disk-utility/file-system-formats-dsku19ed921c/mac), by choice: it matches Linux, where code and CI run, so a file named with the wrong case fails here as it would in CI. The trade-off is that some apps refuse a case-sensitive volume, and [Adobe's installers](https://helpx.adobe.com/download-install/apps/troubleshoot/error-codes-1-99/error22.html) are the documented case. For such an app, add a separate volume in plain APFS, which is not case-sensitive, to the same container rather than erase the Mac: each volume has its own format and shares the container's space.
+A Fresh Mac is installed on APFS (Case-sensitive), one of [Apple's APFS formats](https://support.apple.com/guide/disk-utility/file-system-formats-dsku19ed921c/mac), by choice: it matches Linux, where code and CI run, so a file named with the wrong case fails here as it would in CI. The trade-off is that some apps refuse a case-sensitive volume, and [Adobe's installers](https://helpx.adobe.com/download-install/apps/troubleshoot/error-codes-1-99/error22.html) are the documented case. For such an app, if it can install on another volume, add a separate volume in plain APFS, which is not case-sensitive, to the same container rather than erase the Mac: each volume has its own format and shares the container's space. That does not help an app that checks the startup volume, as Adobe's installers do.
 
 ## How it works
 
@@ -83,21 +83,21 @@ No tool reports these. Check them after the first Bootstrap on a real Mac:
 
 ## Upgrade a Mac
 
-A re-run upgrades nothing. To bring every Package on the Mac to its newest version, run this from any directory:
+A re-run upgrades only what a missing Package needs. To bring the Packages to their newest versions, run this from any directory:
 
 ```sh
 mise run upgrade
 ```
 
-It covers every Package that each Install channel has installed, whether this repo declares it or not, such as one installed by hand. It runs these in order and stops at the first that fails:
+It covers every Package that Homebrew, uv and pnpm have installed, whether this repo declares it or not, such as one installed by hand, and the tools of `config.toml` and Claude Code. A Package from another installer of its own, such as pi, is not upgraded. It runs these in order and stops at the first that fails:
 
 - **Homebrew**: `brew update`, then `brew upgrade --greedy-auto-updates`. It upgrades every formula and cask, with the casks that update themselves, such as Ghostty, Google Chrome, Visual Studio Code and 1Password. Homebrew may quit an app to upgrade it and opens it again after, but never quits the terminal it runs in.
 - **mise**: `mise upgrade`, for the tools of `config.toml`, Node and `sfw`. A tool added with `mise use -g` lands in `config.toml`, so it is covered too. `lts` and `latest` stay as they are written.
 - **uv**: `uv python upgrade`, then `uv tool upgrade --all`.
-- **pnpm**: `pnpm update -g`, for the global packages. It needs pnpm's global bin directory on `PATH`, which `~/.zprofile` adds, so run the upgrade in a new terminal after a Bootstrap.
+- **pnpm**: `pnpm update -g`, for the global Packages. It needs pnpm's global bin directory on `PATH`, which `~/.zprofile` adds, so run the Upgrade in a new terminal after a Bootstrap.
 - **Claude Code**: `claude update`.
 
-A second run straight after the first changes nothing. Nothing runs the upgrade on a schedule, and a Bootstrap never runs it.
+A second run straight after the first changes nothing. Nothing runs the Upgrade on a schedule, and a Bootstrap never runs it.
 
 ## Fix a break
 

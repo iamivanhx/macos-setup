@@ -29,8 +29,8 @@ The source a package is installed from, such as Homebrew or the package's own in
 _Avoid_: Package manager, install method, source
 
 **Upgrade**:
-A deliberate command, `mise run upgrade`, that brings every package on the Mac to its newest version through each install channel, whether this repo declares the package or not. It is never part of the bootstrap, and a re-run of the wrapper upgrades nothing.
-_Avoid_: Update, sync, re-run (when meaning an upgrade)
+A deliberate command, `mise run upgrade`, that brings Packages to their newest versions, one Install channel after another: every Package that Homebrew, uv or pnpm has installed, whether this repo declares it or not, the tools of the global mise config, and Claude Code. A Package from another installer of its own, such as pi, is not upgraded. An Upgrade is never part of the Bootstrap, and a re-run of the Wrapper upgrades only what a missing Package needs.
+_Avoid_: Update, sync, re-run (when meaning an Upgrade)
 
 **Dotfile**:
 A config file in the home directory that is kept in this repo and put in place by the bootstrap.

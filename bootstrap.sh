@@ -11,12 +11,13 @@ AGENT_SOCK="${BOOTSTRAP_AGENT_SOCK:-$HOME/Library/Group Containers/2BUA8C4S2C.co
 
 step() { printf '\n==> %s\n' "$1"; }
 
-# The first key in the agent whose comment is exactly $1, so not "$1 old". It fails when
-# there is none: the key check pauses on that.
+# The first key in the agent whose comment is exactly $1, so not "$1 old" or "Work $1". A line
+# of `ssh-add -L` is `<type> <key> <comment>`: the comment is the line without its first two
+# fields. It fails when there is none: the key check pauses on that.
 agent_key() {
   local key
   while IFS= read -r key; do
-    if [[ "$key" == *" $1" ]]; then echo "$key"; return 0; fi
+    if [[ "${key#* * }" == "$1" ]]; then echo "$key"; return 0; fi
   done < <(SSH_AUTH_SOCK="$AGENT_SOCK" ssh-add -L 2>/dev/null)
   return 1
 }
@@ -36,7 +37,7 @@ main() {
     while true; do
       read -r -p "Hostname for this Mac: " BOOTSTRAP_HOSTNAME
       [[ "$BOOTSTRAP_HOSTNAME" =~ $allowed ]] && break
-      echo "Use 1 to 63 letters, digits and hyphens, with no hyphen first or last. Example: ivan-mbp"
+      echo "Use 1 to 63 letters, digits and hyphens, with no hyphen first or last. Example: studio-2"
     done
   fi
   echo "$BOOTSTRAP_HOSTNAME"

@@ -17,7 +17,8 @@ uv python install
 [ -x "$HOME/.local/bin/claude" ] || curl -fsSL https://claude.ai/install.sh | bash
 '''
 
-# Upgrades every Package on the Mac, declared in this repo or not, one Install channel after another.
+# Upgrades, one Install channel after another, every Package that Homebrew, uv and pnpm have installed, declared in this repo
+# or not, the tools of this config, and Claude Code. A Package from another installer of its own, such as pi, is not upgraded.
 # Never part of the Bootstrap: run it as `mise run upgrade`. It stops at the first step that fails.
 # `--greedy-auto-updates` adds the casks that update themselves. `--greedy` would also reinstall
 # every cask whose version is `:latest`, on every run.
@@ -101,7 +102,8 @@ key = "idleTime"
 host = "current"
 value = 600
 
-# Hooks run on every Bootstrap, so each line first reads the state and acts only when needed.
+# Hooks run on every Bootstrap, so a line that changes the Mac first reads the state and acts only when needed.
+# The pre-defaults line only records the state, and final only prints the Steps by hand.
 [bootstrap.hooks]
 # Ghostty reads a config file in Application Support after the Dotfile, and Open Configuration opens it.
 # An empty one is removed. A non-empty one is left as it is, and the run names it.
@@ -112,8 +114,10 @@ post-dotfiles = [
 ]
 # Fingerprints of what the Dock and Finder show, taken before mise applies the macOS settings. Each run overwrites the file.
 # Finder's takes in the global AppleShowAllExtensions too, because Finder shows that setting only after a restart.
+# The restart line removes the file, so a file already here means the last run stopped before its restart: the line then
+# writes fingerprints that match nothing, and both restart.
 pre-defaults = [
-  'f="${TMPDIR:-/tmp}/macos-setup-dock-finder"; { defaults export com.apple.dock - | md5; { defaults export com.apple.finder -; defaults read NSGlobalDomain AppleShowAllExtensions; } 2>/dev/null | md5; } >"$f" || true',
+  'f="${TMPDIR:-/tmp}/macos-setup-dock-finder"; if [ -e "$f" ]; then printf "unfinished\nunfinished\n" >"$f"; else { defaults export com.apple.dock - | md5; { defaults export com.apple.finder -; defaults read NSGlobalDomain AppleShowAllExtensions; } 2>/dev/null | md5; } >"$f"; fi || true',
 ]
 # Settings that need `sudo`, and the restart that shows the rest. mise reports no drift on these.
 post-defaults = [
