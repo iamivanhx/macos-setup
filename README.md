@@ -11,7 +11,7 @@ A Fresh Mac is installed on APFS (Case-sensitive), one of [Apple's APFS formats]
 The Wrapper, `bootstrap.sh`, runs two standard tools in order:
 
 - **Homebrew** installs the Packages listed in `Brewfile`.
-- **mise bootstrap** does everything else from `config.toml`: the Dotfiles, the Local files, the macOS settings, Node, `sfw`, Python, Claude Code and pi.
+- **mise bootstrap** does everything else from `config.toml`: the Dotfiles, the Local files, the macOS settings, Node, `sfw`, Python and Claude Code.
 
 | Path | What it holds |
 |---|---|
