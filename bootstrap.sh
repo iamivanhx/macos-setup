@@ -37,7 +37,7 @@ main() {
     while true; do
       read -r -p "Hostname for this Mac: " BOOTSTRAP_HOSTNAME
       [[ "$BOOTSTRAP_HOSTNAME" =~ $allowed ]] && break
-      echo "Use 1 to 63 letters, digits and hyphens, with no hyphen first or last. Example: ivan-mbp"
+      echo "Use 1 to 63 letters, digits and hyphens, with no hyphen first or last. Example: studio-2"
     done
   fi
   echo "$BOOTSTRAP_HOSTNAME"
