@@ -8,6 +8,10 @@ autoload -Uz compinit && compinit
 export EDITOR="code --wait"
 export FZF_DEFAULT_OPTS="--color=16"
 
+# Long listings with eza: ll, and la with hidden files too.
+alias ll='eza -l --git --group-directories-first'
+alias la='eza -la --git --group-directories-first'
+
 eval "$(mise activate zsh)"
 source <(fzf --zsh)
 
