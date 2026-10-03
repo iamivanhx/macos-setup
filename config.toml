@@ -79,6 +79,13 @@ key = "AirplayReceiverEnabled"
 host = "current"
 value = false
 
+# Screen saver after 10 idle minutes, so with the 5-second lock delay an idle Mac locks within about 10 minutes (CIS 2.11.1).
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.screensaver"
+key = "idleTime"
+host = "current"
+value = 600
+
 # Hooks run on every Bootstrap, so each line first reads the state and acts only when needed.
 [bootstrap.hooks]
 # Ghostty reads a config file in Application Support after the Dotfile, and Open Configuration opens it.
