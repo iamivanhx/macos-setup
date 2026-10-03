@@ -72,6 +72,13 @@ key = "BatteryShowPercentage"
 host = "current"
 value = true
 
+# AirPlay Receiver off: it holds ports 5000 and 7000 on every network interface (CIS 2.3.1.2).
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "AirplayReceiverEnabled"
+host = "current"
+value = false
+
 # Hooks run on every Bootstrap, so each line first reads the state and acts only when needed.
 [bootstrap.hooks]
 # Ghostty reads a config file in Application Support after the Dotfile, and Open Configuration opens it.
