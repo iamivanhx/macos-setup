@@ -23,7 +23,7 @@ The owner starts a Bootstrap on a Fresh Mac with one command. It fetches the Wra
 
 The Wrapper asks for the hostname, pauses once until this Mac's SSH key is in 1Password's SSH agent, and holds the Mac awake. At the end the Bootstrap prints the Steps by hand. A first run on a Fresh Mac takes about 8 minutes and asks five times. A re-run takes about a second, asks nothing, and sets back what drifted.
 
-Every Mac gets the same 26 Packages, the same Dotfiles and the same 21 macOS settings. Machine values, the hostname and the SSH key, are asked or looked up and never stored in this repo. A new Package, Dotfile, macOS setting or Step by hand is one edit in one place.
+Every Mac gets the same 32 Packages, the same Dotfiles and the same 21 macOS settings. Machine values, the hostname and the SSH key, are asked or looked up and never stored in this repo. A new Package, Dotfile, macOS setting or Step by hand is one edit in one place.
 
 The repo moves off Ansible in one merge. The Ansible version is kept under the tag `ansible-final`. The new setup is trialled, then run on the target Mac, and only then merged.
 
@@ -112,7 +112,7 @@ Where a criterion says "in a Trial", it is observed in a clone of the golden gue
 
 ### Packages
 
-- [ ] AC-26: `Brewfile` holds exactly 22 Packages, one per line and none with a version: the formulae `git`, `gh`, `git-delta`, `mise`, `uv`, `pnpm`, `ripgrep`, `fd`, `bat`, `jq`, `fzf`, `starship`, `zsh-autosuggestions`, `zsh-syntax-highlighting`, `gitleaks`, and the casks `1password`, `1password-cli`, `ghostty`, `google-chrome`, `visual-studio-code`, `codex`, `font-jetbrains-mono-nerd-font`. It names no tap and no `mas` entry
+- [ ] AC-26: `Brewfile` holds exactly 28 Packages, one per line and none with a version: the formulae `git`, `gh`, `git-delta`, `mise`, `uv`, `pnpm`, `ripgrep`, `fd`, `bat`, `jq`, `fzf`, `starship`, `zsh-autosuggestions`, `zsh-syntax-highlighting`, `gitleaks`, `zoxide`, `yq`, `lazygit`, `tlrc`, `eza`, `shellcheck`, and the casks `1password`, `1password-cli`, `ghostty`, `google-chrome`, `visual-studio-code`, `codex`, `font-jetbrains-mono-nerd-font`. It names no tap and no `mas` entry
 - [ ] AC-27: After a first run, a new login shell in the home directory runs `node --version`, which prints a current LTS version that mise installed, and `sfw`, which is on `PATH`
 - [ ] AC-28: After a first run, `uv python list --only-installed` lists a Python, and a new login shell finds `claude` and `pi` on `PATH`. pi's installer asked for no keypress during the run
 - [ ] AC-29: After a first run, `brew list --cask` lists all seven casks of the `Brewfile`, and `brew list node` fails, since Homebrew's `node` is not installed
@@ -228,7 +228,7 @@ macos-setup/
 
 | Install channel | Packages | Where declared |
 |---|---|---|
-| Homebrew formula (15) | `git`, `gh`, `git-delta`, `mise`, `uv`, `pnpm`, `ripgrep`, `fd`, `bat`, `jq`, `fzf`, `starship`, `zsh-autosuggestions`, `zsh-syntax-highlighting`, `gitleaks` | `Brewfile` |
+| Homebrew formula (21) | `git`, `gh`, `git-delta`, `mise`, `uv`, `pnpm`, `ripgrep`, `fd`, `bat`, `jq`, `fzf`, `starship`, `zsh-autosuggestions`, `zsh-syntax-highlighting`, `gitleaks`, `zoxide`, `yq`, `lazygit`, `tlrc`, `eza`, `shellcheck` | `Brewfile` |
 | Homebrew cask (7) | `1password`, `1password-cli`, `ghostty`, `google-chrome`, `visual-studio-code`, `codex`, `font-jetbrains-mono-nerd-font` | `Brewfile` |
 | mise (1) | Node, current LTS | mise config, as a tool |
 | npm global, installed with pnpm (1) | `sfw` | mise config, as the tool `npm:sfw` with pnpm as the npm package manager |
@@ -371,6 +371,8 @@ The two Wrapper seams are one interface with two adapters at each override: GitH
 **Amended when pi left the Bootstrap (2026-10-03).** User story 16, AC-28 and the Install channel table as first written had the Bootstrap install pi with its own installer. pi moves to a repo of its own ([#62](https://github.com/iamivanhx/macos-setup/issues/62)), the same split this spec makes for agent config, so the Bootstrap no longer installs it. User story 16, AC-28 and the Install channel table no longer cover pi: the row for the Package's own installer holds Claude Code only, and the note on pi's installer and its keypress no longer applies. The Solution's Packages go from 27 (after #44) to 26, and the Solution says so. A Mac that has pi keeps it, because the Bootstrap never removes a Package. The Steps by hand name neither pi nor its repo, as the Bootstrap does not hand off to the agent setup repos.
 
 **Amended after the audit (2026-10-03).** AC-30 and AC-35 as first written named the Ghostty Dotfile `~/.config/ghostty/config`, and its file under `dotfiles/ghostty/` in AC-2 kept the name `config`. Ghostty 1.3 renamed its default file to `config.ghostty` and still reads the old name. [#37](https://github.com/iamivanhx/macos-setup/issues/37) places the Dotfile at `~/.config/ghostty/config.ghostty`, from `dotfiles/ghostty/config.ghostty`, so AC-2, AC-30 and AC-35 now mean that name. The audit also found an empty `config.ghostty` in `~/Library/Application Support/com.mitchellh.ghostty/` on the target Mac, made by Ghostty before the first real Bootstrap. Ghostty reads that file after the Dotfile, so what it holds wins, and Ghostty > Open Configuration opens it whenever it exists. Neither `git status` nor `mise bootstrap status` sees it. A `post-dotfiles` hook line now removes an empty `config.ghostty` or `config` from that folder, and leaves a non-empty one as it is: the run prints its path and says to move its settings into the Dotfile. It is not a macOS setting, so the count of macOS settings does not change. The old link `~/.config/ghostty/config` stays on the target Mac after the rename, and the owner removes it once.
+
+**Amended after the audit (2026-10-03).** AC-26 as first written left out five command-line helpers that the research picked, and declared `shellcheck` nowhere. In the Packages decision ([#10](https://github.com/iamivanhx/macos-setup/issues/10)) the owner left out `eza`, `zoxide`, `yq`, `tlrc` and `lazygit`, and said "No `lazygit`". With [#47](https://github.com/iamivanhx/macos-setup/issues/47) the owner reversed that part of #10: the `Brewfile` gains the formulae `zoxide`, `yq`, `lazygit`, `tlrc` and `eza`. `tlrc` gives the `tldr` command: the formula `tldr` is disabled in Homebrew, and `tlrc` is the official tldr client. The zsh Dotfile runs `zoxide init zsh` after the other inits and plugins and before `~/.zshrc.local`, so `z` and `zi` work and the owner's additions still run last. `btop` and `htop` are not added. `shellcheck` is declared too, because the lint command (AC-48) runs it on the Mac: it had been installed with Homebrew by hand, and the undeclared-Packages command of #40 listed it. The CI image still ships its own `shellcheck`, so the workflow's comment no longer says it stays out of the `Brewfile`. The `Brewfile` now holds 21 formulae and the 7 casks left after #44, so AC-26 holds 28 Packages, the Packages table 21 formulae, and the Solution 32 Packages.
 
 **Inferred by this spec.** No ticket decided these. Each is open to an amendment.
 
