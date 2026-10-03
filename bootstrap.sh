@@ -52,7 +52,8 @@ main() {
   [[ -d "$REPO_DIR/.git" ]] || git clone "$REPO_URL" "$REPO_DIR"
 
   step "Packages from Homebrew"
-  brew bundle --file "$REPO_DIR/Brewfile"
+  # Installs what is missing and leaves an outdated Package as it is: upgrading is `mise run upgrade`.
+  brew bundle --no-upgrade --file "$REPO_DIR/Brewfile"
 
   step "This Mac's SSH key"
   local title="SSH Key ($BOOTSTRAP_HOSTNAME)" line

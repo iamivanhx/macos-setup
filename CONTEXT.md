@@ -28,6 +28,10 @@ _Avoid_: Dependency, tool, formula (when meaning any installed software)
 The source a package is installed from, such as Homebrew or the package's own installer. A language runtime is a package like any other, whatever its install channel.
 _Avoid_: Package manager, install method, source
 
+**Upgrade**:
+A deliberate command, `mise run upgrade`, that brings every package on the Mac to its newest version through each install channel, whether this repo declares the package or not. It is never part of the bootstrap, and a re-run of the wrapper upgrades nothing.
+_Avoid_: Update, sync, re-run (when meaning an upgrade)
+
 **Dotfile**:
 A config file in the home directory that is kept in this repo and put in place by the bootstrap.
 _Avoid_: Config, rc file

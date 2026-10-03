@@ -17,6 +17,21 @@ uv python install
 [ -x "$HOME/.local/bin/claude" ] || curl -fsSL https://claude.ai/install.sh | bash
 '''
 
+# Upgrades every Package on the Mac, declared in this repo or not, one Install channel after another.
+# Never part of the Bootstrap: run it as `mise run upgrade`. It stops at the first step that fails.
+# `--greedy-auto-updates` adds the casks that update themselves. `--greedy` would also reinstall
+# every cask whose version is `:latest`, on every run.
+[tasks.upgrade]
+run = '''
+brew update
+brew upgrade --greedy-auto-updates
+mise upgrade
+uv python upgrade
+uv tool upgrade --all
+pnpm update -g
+claude update
+'''
+
 # --- Machine values ---------------------------------------------------------
 # `bootstrap.sh` asks for the hostname and reads the public key from 1Password's SSH agent.
 [bootstrap.secrets]

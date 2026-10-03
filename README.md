@@ -1,6 +1,6 @@
 # macos-setup
 
-This repo sets up a Fresh Mac: its Packages, its Dotfiles and its macOS settings. One command starts a Bootstrap. A re-run is safe, and it is how you check and repair a Mac. It also upgrades the Packages from Homebrew that are outdated.
+This repo sets up a Fresh Mac: its Packages, its Dotfiles and its macOS settings. One command starts a Bootstrap. A re-run is safe, and it is how you check and repair a Mac: it installs what is missing, sets back what drifted, and upgrades nothing. Upgrading is a command of its own, `mise run upgrade`.
 
 It is written for the owner's Macs, on Apple Silicon with macOS 27. Every Mac gets the same setup.
 
@@ -52,7 +52,7 @@ At the end of the run the Wrapper prints the Steps by hand from [`steps-by-hand.
 
 The tools' own reports tell a Mac's state. This repo has no check script.
 
-- **A re-run of the Wrapper**, `~/Projects/macos-setup/bootstrap.sh`. It upgrades the Packages from Homebrew that are outdated, because the Wrapper runs `brew bundle`, which upgrades by default. It takes about a second when nothing is outdated, asks nothing, and sets back what drifted. It asks for the `sudo` password only to set back a setting that needs it.
+- **A re-run of the Wrapper**, `~/Projects/macos-setup/bootstrap.sh`. It installs a Package of the `Brewfile` that is missing and upgrades none that is outdated, because the Wrapper runs `brew bundle --no-upgrade`. Installing a missing Package can still upgrade a Package it depends on. A re-run takes about a second when nothing is missing, asks nothing, and sets back what drifted. It asks for the `sudo` password only to set back a setting that needs it.
 - **`mise bootstrap status --missing`**. It exits 1 when a Dotfile, a macOS setting or a tool of `config.toml` is out of step. Run by hand, it needs the two Machine values in the environment, `BOOTSTRAP_HOSTNAME` and `BOOTSTRAP_SSH_PUBLIC_KEY`. Without them it reports the two Local files as out of step. The four settings that need `sudo` are not in its report.
 
   ```sh
@@ -80,6 +80,24 @@ No tool reports these. Check them after the first Bootstrap on a real Mac:
 - [ ] `sudo` in a new terminal accepts Touch ID.
 - [ ] The key step with 1Password: with 1Password unlocked and its SSH agent on, the key check finds `SSH Key (<hostname>)` with no pause, and `ssh -T git@github.com` greets your GitHub account.
 - [ ] A push over SSH: `git push` from the checkout succeeds, and GitHub shows the pushed commit as verified.
+
+## Upgrade a Mac
+
+A re-run upgrades nothing. To bring every Package on the Mac to its newest version, run this from any directory:
+
+```sh
+mise run upgrade
+```
+
+It covers every Package that each Install channel has installed, whether this repo declares it or not, such as one installed by hand. It runs these in order and stops at the first that fails:
+
+- **Homebrew**: `brew update`, then `brew upgrade --greedy-auto-updates`. It upgrades every formula and cask, with the casks that update themselves, such as Ghostty, Google Chrome, Visual Studio Code and 1Password. Homebrew may quit an app to upgrade it and opens it again after, but never quits the terminal it runs in.
+- **mise**: `mise upgrade`, for the tools of `config.toml`, Node and `sfw`. A tool added with `mise use -g` lands in `config.toml`, so it is covered too. `lts` and `latest` stay as they are written.
+- **uv**: `uv python upgrade`, then `uv tool upgrade --all`.
+- **pnpm**: `pnpm update -g`, for the global packages. It needs pnpm's global bin directory on `PATH`, which `~/.zprofile` adds, so run the upgrade in a new terminal after a Bootstrap.
+- **Claude Code**: `claude update`.
+
+A second run straight after the first changes nothing. Nothing runs the upgrade on a schedule, and a Bootstrap never runs it.
 
 ## Fix a break
 
