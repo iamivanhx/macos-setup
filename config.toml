@@ -78,6 +78,8 @@ value = true
 # An empty one is removed. A non-empty one is left as it is, and the run names it.
 post-dotfiles = [
   'for name in config.ghostty config; do f="$HOME/Library/Application Support/com.mitchellh.ghostty/$name"; if [ -s "$f" ]; then echo "$f overrides the Ghostty Dotfile. Move its settings into ~/.config/ghostty/config.ghostty, then delete it."; elif [ -f "$f" ]; then rm "$f"; fi; done',
+  # gh clones over SSH with this Mac's key, as git does. gh keeps its sign-in beside its config, so that is no Dotfile.
+  '[ "$(gh config get git_protocol 2>/dev/null)" = ssh ] || gh config set git_protocol ssh',
 ]
 # Settings that need `sudo`, and the restart that shows the rest. mise reports no drift on these.
 post-defaults = [
